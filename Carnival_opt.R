@@ -20,6 +20,8 @@ Carnival_opt <-function(iterator_index,
   library(progress)
   library(dorothea)
   library(progeny)
+
+
   #cplex_path = "/Applications/CPLEX_Studio221/cplex/bin/x86-64_osx/cplex"
   #cplex_path = "C:/Program Files/IBM/ILOG/CPLEX_Studio129/cplex/bin/x64_win64"
   cplex_path <- "C:/Program Files/IBM/ILOG/CPLEX_Studio221/cplex/bin/x64_win64/"
@@ -45,13 +47,6 @@ Carnival_opt <-function(iterator_index,
   regulon_df <- regulon_df[which((regulon_df$is_stimulation+regulon_df$is_inhibition)==1), ] #keeping only regulons which are either activations/inhibitions
 
 
-  #regulon_df <- regulon_df[which(regulon_df$source_genesymbol %in%
-  #                                 regulons_violin_gene+regulon_df$target_genesymbol%in% regulons_violin_gene),]
-
-
-  #### CRITICAL ### #### CRITICAL ####### CRITICAL ####### CRITICAL ####### CRITICAL ####### CRITICAL ####### CRITICAL ####### CRITICAL ####### CRITICAL ###
-  #regulon_df <- regulon_df  %>%  dplyr::filter(regulon_df$target_genesymbol%in% regulons_violin_gene)
-  #### CRITICAL ####### CRITICAL ####### CRITICAL ####### CRITICAL ####### CRITICAL ####### CRITICAL ####### CRITICAL ####### CRITICAL ####### CRITICAL ####
   print("Getting data from OmniPathR...")
   df <- matrix(data = , nrow = nrow(regulon_df), ncol = 3) #creating the regulon dataframe for the createRegulonList function
 
@@ -113,38 +108,15 @@ Carnival_opt <-function(iterator_index,
                                                                     eset.filter = FALSE, cores = 1,
                                                                     verbose = T)))
 
-  # TF_activities = as.data.frame(viper::viper(eset = df_EM,
-  #                                           regulon = regulon_A_B_C, nes = T,
-  #                                          method = 'none', minsize = 4,
-  #                                         eset.filter = F)) ##estimating tf activities with viper
-
-
   print("Saving the regulon activities from Viper/DoRothEA...")
   save(TF_activities, file="measurements.RData")
 
-  tfList <- generateDataframeTF(df = TF_activities, top = top_user, 1:ncol(df_EM)) ##generating the list of measurements. selecting the top50 measurements.
+  tfList <- generateDataframeTF(df = TF_activities, top = top_user, 1:ncol(df_EM))
 
-  #mm <- get("model_human_full", envir = .GlobalEnv)
-  #pathway_activities <- progeny(expr = as.matrix(x = TF_activities), scale = TRUE, top = 100, perm = 1000, organism = "Human")
-
-
-  #load(file = paste0(inputs_dir,"//progenyMembers.RData")) # can also be modified by the user
-
-  #weightObj <- assignPROGENyScores(progeny = pathway_activities, progenyMembers = progenyMembers, access_idx = 1:nrow(pathway_activities))
-
-
-  ##for each sample we generate a directory which will contain the dot figure and the list of result from carnival
-
-  ##running carnival for each sample and saving each of the results in a list
   resList <- list()
-  list_of_graphs <- c() # the list to contain all the graphs generated for comparison reasons later on
-
-
-  # now create the dataframe which will contain the scores of comparing each graph newtwork with all other
-
+  list_of_graphs <- c()
   graph_heatmap <- matrix(data = , nrow = length(tfList), ncol = length(tfList))
 
-  # create similar binary size matrix that contains 1 if both row and column are same types of mutations
   tfList_names <- names(tfList)
 
   graph_heatmap_ID <- matrix(data = , nrow = length(tfList), ncol = length(tfList)) # compare same type of mutation
@@ -157,11 +129,11 @@ Carnival_opt <-function(iterator_index,
   top_bc_network <-  c()
   top_bc_vertex <- c()
   top_similar_score <- c()
-  #length(tfList)
   total_Bar <- length(tfList)
   pb <- progress_bar$new(total = total_Bar)
 
   print("optimising networks with CARNIVAL MILP...")
+
 
   for (ii in 1: length(tfList)){
     pb$tick()
@@ -169,6 +141,7 @@ Carnival_opt <-function(iterator_index,
     temp_dir <- paste0(carnival_path, "/", names(tfList)[ii])
     print(temp_dir)
     dir.create(path = temp_dir)
+
 
 
     final_input <- NULL
@@ -228,7 +201,9 @@ Carnival_opt <-function(iterator_index,
 
   #############################################################################
 
-
+  labels_csv <-  matrix(data = , nrow = length(tfList_names), ncol = 3)
+  labels_csv <- as.data.frame(labels_csv)
+  colnames(labels_csv) <- c("filename","mutation","label")
   print("Read all possible networks as graphs...")
   for (i in 1:  range_opt) {
 
@@ -236,14 +211,30 @@ Carnival_opt <-function(iterator_index,
     Sys.sleep(1 / total_Bar)
     net_base <- NULL
     temp_dir <- paste0(carnival_path, "/", names(tfList)[i])
+    base_file2 <- paste0(temp_dir,"/network_solution.dot")
     base_file <- paste0(temp_dir,"/network_solution.graphml")
 
-    my_data <- read.delim(base_file)
+    new_name_gml <- paste0(temp_dir,"/", as.character(i),".graphml")
+    print("renaming graphml file")
 
-    if (file.exists(base_file)){
-      base_file2 <- paste0(temp_dir,"/network_solution.dot")
+    file.rename(base_file, new_name_gml)
+
+
+    my_data <- read.delim(base_file2)
+
+    if (file.exists(new_name_gml)){
+
+
+
+
+
+
+      labels_csv[i,1] <- new_name_gml
+      labels_csv[i,2] <- names(tfList)[i]
+
+
       print("Reading graphml file from Python:")
-      net_base <- igraph::read_graph(base_file, format = "graphml")
+      net_base <- igraph::read_graph(new_name_gml, format = "graphml")
       base <- net_base
 
       my_data <- read.delim(base_file2)
@@ -262,7 +253,6 @@ Carnival_opt <-function(iterator_index,
       g <- graph_from_literal()
       g <- as.directed(net_base)
       g0 <- as.directed(base)
-      #sp_g <- cluster_infomap(g, modularity = TRUE)
 
       print("Converting to visNetwork object")
       GRN <- toVisNetworkData(g0)
@@ -285,7 +275,6 @@ Carnival_opt <-function(iterator_index,
                           shape = ifelse(V(g0)$label %in% c(paste0(violin_gene,"up"),paste0(violin_gene,"down")), "star", "circle"),
                           color = ifelse(stringr::str_detect(V(g0)$label,"up"), "blue", "red"))
 
-      #edges <- data.frame(GRN$edges,shadow = as.list(rep(TRUE, gsize(g0))))
       mainP = paste0("Optimized network for:: ",names(tfList)[i],"::" , violin_gene)
       sp_g_6 <- visNetwork(nodes,GRN$edges, main = mainP, height = "700px", width = "100%") %>%
         visEdges(labelHighlightBold= "TRUE",arrows = "to") %>%
@@ -298,12 +287,10 @@ Carnival_opt <-function(iterator_index,
 
       sp_g <- cluster_edge_betweenness(g)
       V(g)$community <- sp_g$membership
-      my_data <- read.delim(base_file)
-      #V(g)$community<- 1: gorder(g)
-      #print(V(g)$community)
+      my_data <- read.delim(base_file2)
       net_data <- toVisNetworkData(g)
       V(g)$label <- V(g)$name
-      my_data <- read.delim(base_file)
+      my_data <- read.delim(base_file2)
 
       for (j in 1:length(V(g)$label )){
         temp_gene <- strsplit(V(g)$label[j], split=' [', fixed=TRUE)
@@ -313,7 +300,6 @@ Carnival_opt <-function(iterator_index,
 
       }
 
-      #print(V(g)$label)
       gg <- g
       V(gg)$name <- V(gg)$label
       sub_graphs <- c()
@@ -321,7 +307,6 @@ Carnival_opt <-function(iterator_index,
       unique_communities <- unique(V(gg)$community)
       temp_vertex <- c()
       for (ie in 1: length(unique_communities)){
-        #print(paste0("Community :", as.character(ie)))
         OV <- which(V(gg)$community == unique_communities[ie])
         g_subgraph_temp <- induced_subgraph(gg, OV)
         temp_vertex0 <- which.max(igraph::betweenness(g_subgraph_temp))
@@ -331,8 +316,6 @@ Carnival_opt <-function(iterator_index,
 
       }
       signature <- paste(temp_vertex, collapse = '_')
-      #print("Signature: ")
-      #print(signature)
 
       top_bc_network <-  c(top_bc_network, paste0(names(tfList)[i]))
       top_bc_vertex <- c(top_bc_vertex,signature)
@@ -342,14 +325,10 @@ Carnival_opt <-function(iterator_index,
                           label = V(g)$label,
                           shape = ifelse(V(g)$label %in% c(paste0(violin_gene,"up"),paste0(violin_gene,"down")), "star", "circle"))
 
-      #edges <- data.frame(net_data$edges,shadow = as.list(rep(TRUE, gsize(g))))
-
-
       mainP = paste0("Communities of optimized network for:: ",names(tfList)[i],"::" , violin_gene)
       print(paste0("Saving visualized graph for ", print(names(tfList)[i])))
       sp_g_5 <- visNetwork(nodes,net_data$edges, main = mainP, height = "700px", width = "100%") %>%
         visEdges(labelHighlightBold= "TRUE",arrows = "from") %>%
-        #visNodes(size = 20) %>%
         visInteraction(zoomView = TRUE) %>%
         visOptions(highlightNearest = TRUE,nodesIdSelection = TRUE,selectedBy = "group") %>%
         visPhysics(stabilization = FALSE)  %>% visIgraphLayout(layout = "layout_nicely") %>%
@@ -367,7 +346,10 @@ Carnival_opt <-function(iterator_index,
 
     }
   }
-
+  labels_csv$mutation <- sapply(strsplit(labels_csv$mutation, split='_', fixed=TRUE),function(x) paste0(x[1],x[2]))
+  labels_csv  <- labels_csv %>% group_by(mutation) %>% mutate(label = cur_group_id())
+  labels_csv$mutation <- NULL
+  write.csv(labels_csv,paste0(carnival_path, "/","GNN_labels.csv"))
 
   print("Printing upSetR graph...")
   no_mutations <- length(mutations)
@@ -470,8 +452,6 @@ Carnival_opt <-function(iterator_index,
     else{score <- 0} # if base network iterating is already null
   }
   print("Finished network comparisons...")
-  #names_bkp <- names(tfList)
-  #names(tfList)<- sapply(strsplit(names_bkp, split='_', fixed=TRUE),function(x) (paste0(x[1],x[2])))
 
   colnames(graph_heatmap) <- names(tfList)
   row.names(graph_heatmap) <- names(tfList)
@@ -489,34 +469,28 @@ Carnival_opt <-function(iterator_index,
   total_perc_filtered_del <- c() # similar and same flag for deleterious
   total_perc_filtered_del_S <- c() # similar and same type of mutation and deleterious flag
   total_perc_filtered_hotspot <- c() # similar and from same hotspot
-  total_perc_filtered_KEY <- c()
+  total_perc_filtered_KEY <- c() # user given
 
   write.csv(graph_heatmap,paste0(carnival_path,"/Networks_Similarity_Scores_",disease_filename_j,".csv"))
   print("Finishing matrices init...")
   # now transform heatamp matrix to only account for similarity scores that come from same mutation types
   # this is done through filtering with graph_heatmap_ID as follows:
-  graph_heatmap_filtered <- graph_heatmap*as.vector(graph_heatmap_ID) # this zeroes target based on zeroes in heatmap_D
-  graph_heatmap_filtered_del <- graph_heatmap*as.vector(graph_heatmap_DEL) # this zeroes target based on zeroes in heatmap_D
+  graph_heatmap_filtered <- graph_heatmap*as.vector(graph_heatmap_ID) # this zeroes target based on zeroes in heatmap
+  graph_heatmap_filtered_del <- graph_heatmap*as.vector(graph_heatmap_DEL)
   graph_heatmap_filtered_hotspot <- graph_heatmap*as.vector(graph_heatmap_hotspot)
   graph_heatmap_filtered_KEY <- graph_heatmap*as.vector(graph_heatmap_KEY)
 
-  #names_bkp <- names(tfList)
-  #names(tfList)<- sapply(strsplit(names_bkp, split='_', fixed=TRUE),function(x) (paste0(x[1],x[2])))
+
   colnames(graph_heatmap_filtered) <- names(tfList)
   row.names(graph_heatmap_filtered) <- names(tfList)
 
-  #names_bkp <- names(tfList)
-  #names(tfList)<- sapply(strsplit(names_bkp, split='_', fixed=TRUE),function(x) (paste0(x[1],x[2],x[4])))
   colnames(graph_heatmap_filtered_del) <- names(tfList)
   row.names(graph_heatmap_filtered_del) <- names(tfList)
 
-  #names_bkp <- names(tfList)
-  #names(tfList)<- sapply(strsplit(names_bkp, split='_', fixed=TRUE),function(x) (paste0(x[1],x[2])))
   colnames(graph_heatmap_filtered_hotspot) <- names(tfList)
   row.names(graph_heatmap_filtered_hotspot) <- names(tfList)
 
-  #names_bkp <- names(tfList)
-  #names(tfList)<- sapply(strsplit(names_bkp, split='_', fixed=TRUE),function(x) (paste0(x[1],x[2],x[length(x)])))
+
   colnames(graph_heatmap_filtered_KEY) <- names(tfList)
   row.names(graph_heatmap_filtered_KEY) <- names(tfList)
 
@@ -529,7 +503,6 @@ Carnival_opt <-function(iterator_index,
 
   print("Finishing loops...")
   for (i in 1:length(network_similarity_threshold)){
-    #temp_score <- sum(sapply(graph_heatmap, function(x) sum(x>network_similarity_threshold[i])))
     temp_score <- sum(graph_heatmap >= network_similarity_threshold[i])
     temp_score <- round(temp_score/total_no_nets, digits = 2)
     total_perc <- c(total_perc,temp_score*100)

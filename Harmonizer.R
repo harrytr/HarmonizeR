@@ -119,7 +119,7 @@ ui <- fluidPage(
 
 
                 layout_columns(col_widths = c(3),
-                  checkboxInput("CARNIVAL_flag", label = "Run CARNIVAL optimization", FALSE),
+                  checkboxInput("CARNIVAL_flag", label = "Run CARNIVAL optimization", TRUE),
                   checkboxInput("FEM_flag", label = "Use whole expression matrix?", TRUE)
                 ),
 
@@ -127,7 +127,7 @@ ui <- fluidPage(
                   checkboxInput("molecular_flag", label = "Select from molecular features", FALSE),
                   selectInput("key_opt_molecular", "Enter the network comparison molecular feature:", choice = NULL, selected = NULL, selectize = TRUE),
 
-                  checkboxInput("clinical_flag", label = "Select from clinical features", FALSE),
+                  checkboxInput("clinical_flag", label = "Select from clinical features", TRUE),
                   selectInput("key_opt_clinical", "Enter the network comparison clinical feature:", choice = NULL, selected = NULL, selectize = TRUE),
 
                   selectInput("feature", "Select resulting feature :", choice = NULL, selected = result[1], selectize = TRUE),
