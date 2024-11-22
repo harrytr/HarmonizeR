@@ -63,7 +63,8 @@ library(bslib)
 
 ui <- fluidPage(
   theme = bs_theme(secondary = "#FFFFFF", font_scale = 0.75,base_font = font_google("Space Mono"),
-                   `enable-gradients` = TRUE, `enable-shadows` = TRUE, preset = "quartz"),
+                  `enable-gradients` = TRUE, `enable-shadows` = TRUE, preset = "quartz"),
+
   #tags$head(
   #  tags$style(HTML('#run{background-color:white}'))
   #),
@@ -118,14 +119,12 @@ ui <- fluidPage(
 
               ######################################################################################################
 
-
-
                 layout_columns(col_widths = c(3),
                   checkboxInput("CARNIVAL_flag", label = "Run CARNIVAL optimization", TRUE),
                   checkboxInput("FEM_flag", label = "Use whole expression matrix?", TRUE)
                 ),
 
-                layout_columns(col_widths = c(6),
+                layout_columns(col_widths = c(6),row_heights = c(10),
                   checkboxInput("molecular_flag", label = "Select from molecular features", FALSE),
                   selectInput("key_opt_molecular", "Enter the network comparison molecular feature:", choice = NULL, selected = NULL, selectize = TRUE),
 
@@ -171,6 +170,27 @@ ui <- fluidPage(
               layout_columns(col_widths = c(6),
                              checkboxGroupInput("LM", "Select learning method (s):",LM, selected = "elasticnet"),
               ),
+
+
+    ),
+    nav_panel("Deep Learning Params",
+              layout_columns(
+              sliderInput("epochs", "Epochs:",
+                          min = 50, max = 1000,
+                          value = 100),
+
+              sliderInput("lr", "Learning Rate:",
+                          min = 0, max = 1,
+                          value = 0.001, step = 0.01),
+
+              sliderInput("tts", "Train-to-Test Ratio:",
+                          min = 0.5, max = 1,
+                          value = 0.75, step = 0.1),
+
+              sliderInput("update_it", "Display update interval:",
+                          min = 1, max = 1000,
+                          value = 10, step = 10),
+              )
 
 
     ),
@@ -350,6 +370,12 @@ server <- function(input, output,session) {
 
     folds <- input$folds
 
+    epochs <- input$epochs
+    lr <- input$lr
+    tts <- input$tts
+    update_it <- input$update_it
+
+
 
     key_opt <- input$feature
     key_opt_type <- input$comparison_type
@@ -431,7 +457,8 @@ server <- function(input, output,session) {
                    LM,
                    folds,
                    key_opt,
-                   key_opt_type,molecular_features_col,clinical_features_col
+                   key_opt_type,molecular_features_col,clinical_features_col,
+                   epochs,lr,tts,update_it
     )
 
     setwd(working_directory)

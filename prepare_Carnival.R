@@ -26,7 +26,7 @@ prepare_Carnival <- function(mapk_data,
                              FEM_user,
                              ccle_iterator,
                              key_opt,
-                             key_opt_type,mutations,source_code_dir)
+                             key_opt_type,mutations,source_code_dir,epochs,lr,tts,update_it)
 
 {
   print("Preparing Carnival data...")
@@ -93,7 +93,7 @@ prepare_Carnival <- function(mapk_data,
                                        top_score,
                                        genes_HGNC_bkp,
                                        regulons_violin_gene,
-                                       radar_plot_data,key_opt,key_opt_type, mutations,source_code_dir)
+                                       radar_plot_data,key_opt,key_opt_type, mutations,source_code_dir,epochs,lr,tts,update_it)
 
     # CASE TCGA :
 

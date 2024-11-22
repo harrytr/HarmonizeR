@@ -15,7 +15,8 @@ Carnival_opt <-function(iterator_index,
                         top_score,
                         genes_HGNC_bkp,
                         regulons_violin_gene,
-                        radar_plot_data,key_opt,key_opt_type, mutations, source_code_dir) {
+                        radar_plot_data,key_opt,key_opt_type, mutations, source_code_dir,
+                        epochs,lr,tts,update_it) {
 
   library(progress)
   library(dorothea)
@@ -192,14 +193,14 @@ Carnival_opt <-function(iterator_index,
   #### RUN PYTHON SCRIPT TO CONVERT .dot to .graphml so that igraph can read it
   setwd(source_code_dir)
   print("Running now Python script to convert .DOT to igraph...")
-  
+
   if (.Platform$OS.type == "unix") {
     command <- paste0("python3 dot_2_igraph.py ",'"',carnival_path,'"'," ",'"',violin_gene,'"')
   }
   else if  (.Platform$OS.type == "windows") {
     command <- paste0("python dot_2_igraph.py ",'"',carnival_path,'"'," ",'"',violin_gene,'"')
   }
- 
+
   system(command)
   print("Done!")
 
@@ -207,7 +208,7 @@ Carnival_opt <-function(iterator_index,
 
   labels_csv <-  matrix(data = , nrow = length(tfList_names), ncol = 3)
   labels_csv <- as.data.frame(labels_csv)
-  colnames(labels_csv) <- c("filename","mutation","label")
+  colnames(labels_csv) <- c("filename","mutation","labels")
   print("Read all possible networks as graphs...")
   for (i in 1:  range_opt) {
 
@@ -228,8 +229,8 @@ Carnival_opt <-function(iterator_index,
    )
 
     if (file.exists(new_name_gml)){
-      
-      
+
+
 
       labels_csv[i,1] <- paste0(as.character(i),".graphml")
       labels_csv[i,2] <- names(tfList)[i]
@@ -344,17 +345,17 @@ Carnival_opt <-function(iterator_index,
 
 
       print("Saving Community detection graph...")
-      
+
       visSave(sp_g_5, file = paste0(paste0(carnival_path, "/", names(tfList)[i]),"/CM",".html"), selfcontained = TRUE, background = "white")
       print("Done")
 
     }
   }
   print("Creating the labels for GNN...")
-  labels_csv$mutation <- sapply(strsplit(labels_csv$mutation, split='_', fixed=TRUE),function(x) paste0(x[1],x[2]))
-  labels_csv  <- labels_csv %>% group_by(mutation) %>% mutate(label = cur_group_id())
-  labels_csv$label <- as.numeric( labels_csv$label) - 1
-  labels_csv$label <- as.character( labels_csv$label)
+  labels_csv$labels <- sapply(strsplit(labels_csv$mutation, split='_', fixed=TRUE),function(x) paste0(x[1],"_",x[2]))
+  #labels_csv  <- labels_csv %>% group_by(mutation) %>% mutate(label = cur_group_id())
+  #$label <- as.numeric( labels_csv$label) - 1
+  #labels_csv$labels <- as.character( labels_csv$labels)
   labels_csv$mutation <- NULL
   write.csv(labels_csv,paste0(carnival_path, "/","GNN_labels.csv"))
 
@@ -667,17 +668,18 @@ Carnival_opt <-function(iterator_index,
 
   print("Running now Python script to classify optimized networks at graph level using Graph Neural Networks...")
   if (.Platform$OS.type == "unix") {
-    command <- paste0("python3 GNN.py ",'"',carnival_path,'"'," ",'"',paste0(carnival_path, "/","GNN_labels.csv"),'"')
+    command <- paste0("python3 GNN.py ",'"',carnival_path,'"'," ",'"',paste0(carnival_path, "/","GNN_labels.csv"),'"'," ", epochs," ",lr," ",tts," ",update_it)
   }
   else if  (.Platform$OS.type == "windows") {
-    command <- paste0("python GNN.py ",'"',carnival_path,'"'," ",'"',paste0(carnival_path, "/","GNN_labels.csv"),'"')
+    command <- paste0("python GNN.py ",'"',carnival_path,'"'," ",'"',paste0(carnival_path, "/","GNN_labels.csv"),'"'," ",epochs," ",lr," ",tts," ",update_it)
   }
-  
-  
-  
+
+
+
   print(command)
   system(command)
   Sys.sleep(10)
+  #stop()
   print("Done!")
 
   return(return_list)
