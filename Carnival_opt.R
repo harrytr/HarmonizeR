@@ -219,13 +219,17 @@ Carnival_opt <-function(iterator_index,
     base_file <- paste0(temp_dir,"/network_solution.graphml")
 
     new_name_gml <- paste0(temp_dir,"/", as.character(i),".graphml")
-   
+   try(
     my_data <- read.delim(base_file2)
+   )
+    print("Renaming graphml file")
+   try(
+     file.rename(base_file, new_name_gml)
+   )
 
     if (file.exists(new_name_gml)){
       
-      print("Renaming graphml file")
-      file.rename(base_file, new_name_gml)
+      
 
       labels_csv[i,1] <- paste0(as.character(i),".graphml")
       labels_csv[i,2] <- names(tfList)[i]
@@ -239,6 +243,8 @@ Carnival_opt <-function(iterator_index,
     }
     else
     {
+      labels_csv[i,1] <- paste0(as.character(i),".graphml")
+      labels_csv[i,2] <- names(tfList)[i]
       net_base <- NULL
     }
 
