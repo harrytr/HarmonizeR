@@ -3,6 +3,8 @@ graphics.off()
 print("Loading libraries required...")
 list.of.packages <- c("shiny","shinyWidgets","shinyjs","igraph","stringr", "dplyr")
 invisible(lapply(list.of.packages, library, character.only = TRUE))
+#pip install pygraphml igraph torch torch-geometric numpy
+system("source /opt/anaconda3/bin/activate")
 
 working_directory <- getwd()
 library(renoir)

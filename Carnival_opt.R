@@ -20,15 +20,15 @@ Carnival_opt <-function(iterator_index,
   library(progress)
   library(dorothea)
   library(progeny)
-
-
-  #cplex_path = "/Applications/CPLEX_Studio221/cplex/bin/x86-64_osx/cplex"
-  #cplex_path = "C:/Program Files/IBM/ILOG/CPLEX_Studio129/cplex/bin/x64_win64"
-  cplex_path <- "C:/Program Files/IBM/ILOG/CPLEX_Studio221/cplex/bin/x64_win64/"
+  if (.Platform$OS.type == "unix") {
+    cplex_path = "/Applications/CPLEX_Studio221/cplex/bin/x86-64_osx/cplex"
+  }
+  else if  (.Platform$OS.type == "windows") {
+    cplex_path <- "C:/Program Files/IBM/ILOG/CPLEX_Studio221/cplex/bin/x64_win64/"
+  }
   #  PREPARE CARNIVAL INPUT FILES:
   print("Preparing the viper regulon list...")
-  #write.csv(cloned,"cloned.csv")
-  #df_EM <- df_EM[,-1]
+
   print(paste0("Standarizing Expression Matrix for the regulons of ", violin_gene, " ..."))
 
   df_EM <- scale(df_EM)
@@ -191,11 +191,15 @@ Carnival_opt <-function(iterator_index,
 
   #### RUN PYTHON SCRIPT TO CONVERT .dot to .graphml so that igraph can read it
   setwd(source_code_dir)
-  print(source_code_dir)
-  print(carnival_path)
-  print(violin_gene)
   print("Running now Python script to convert .DOT to igraph...")
-  command <- paste0("python dot_2_igraph.py ",'"',carnival_path,'"'," ",'"',violin_gene,'"')
+  
+  if (.Platform$OS.type == "unix") {
+    command <- paste0("python3 dot_2_igraph.py ",'"',carnival_path,'"'," ",'"',violin_gene,'"')
+  }
+  else if  (.Platform$OS.type == "windows") {
+    command <- paste0("python dot_2_igraph.py ",'"',carnival_path,'"'," ",'"',violin_gene,'"')
+  }
+ 
   system(command)
   print("Done!")
 
@@ -215,23 +219,16 @@ Carnival_opt <-function(iterator_index,
     base_file <- paste0(temp_dir,"/network_solution.graphml")
 
     new_name_gml <- paste0(temp_dir,"/", as.character(i),".graphml")
-    print("renaming graphml file")
-
-    file.rename(base_file, new_name_gml)
-
-
+   
     my_data <- read.delim(base_file2)
 
     if (file.exists(new_name_gml)){
+      
+      print("Renaming graphml file")
+      file.rename(base_file, new_name_gml)
 
-
-
-
-
-
-      labels_csv[i,1] <- new_name_gml
+      labels_csv[i,1] <- paste0(as.character(i),".graphml")
       labels_csv[i,2] <- names(tfList)[i]
-
 
       print("Reading graphml file from Python:")
       net_base <- igraph::read_graph(new_name_gml, format = "graphml")
@@ -340,14 +337,18 @@ Carnival_opt <-function(iterator_index,
                           shape = ifelse(V(g)$label %in% c(paste0(violin_gene,"up"),paste0(violin_gene,"down")), "star", "circle"))
 
 
-
+      print("Saving Community detection graph...")
+      
       visSave(sp_g_5, file = paste0(paste0(carnival_path, "/", names(tfList)[i]),"/CM",".html"), selfcontained = TRUE, background = "white")
-
+      print("Done")
 
     }
   }
+  print("Creating the labels for GNN...")
   labels_csv$mutation <- sapply(strsplit(labels_csv$mutation, split='_', fixed=TRUE),function(x) paste0(x[1],x[2]))
   labels_csv  <- labels_csv %>% group_by(mutation) %>% mutate(label = cur_group_id())
+  labels_csv$label <- as.numeric( labels_csv$label) - 1
+  labels_csv$label <- as.character( labels_csv$label)
   labels_csv$mutation <- NULL
   write.csv(labels_csv,paste0(carnival_path, "/","GNN_labels.csv"))
 
@@ -654,6 +655,29 @@ Carnival_opt <-function(iterator_index,
   write.csv(radar_plot_data,"radar_plot_data_temp.csv")
   return_list<- list("radar_plot_data" = radar_plot_data, sp_CARNIVAL,total_perc,total_perc_filtered,total_perc_filtered_del,total_perc_filtered_hotspot)
 
+
+  #### RUN PYTHON SCRIPT TO CONVERT .dot to .graphml so that igraph can read it
+  setwd(source_code_dir)
+
+  print("Running now Python script to classify optimized networks at graph level using Graph Neural Networks...")
+  if (.Platform$OS.type == "unix") {
+    command <- paste0("python3 GNN.py ",'"',carnival_path,'"'," ",'"',paste0(carnival_path, "/","GNN_labels.csv"),'"')
+  }
+  else if  (.Platform$OS.type == "windows") {
+    command <- paste0("python GNN.py ",'"',carnival_path,'"'," ",'"',paste0(carnival_path, "/","GNN_labels.csv"),'"')
+  }
+  
+  
+  
+  print(command)
+  system(command)
+  Sys.sleep(10)
+  print("Done!")
+
   return(return_list)
+
+
+  #############################################################################
+
 
 }
