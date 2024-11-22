@@ -35,7 +35,7 @@ runApp('Harmonizer.R')
 
 It should look like this:
 
-![harmonizer_UI](https://github.com/user-attachments/assets/30459019-cdc7-4378-a8fe-5850c83b7c76)
+<img width="904" alt="Screenshot 2024-11-22 at 14 45 02" src="https://github.com/user-attachments/assets/4a49ddf1-ec56-489c-89ef-ccc36d08d17e">
 
 In the UI from the bottom right check the box "Read new CCLE version" and use the "24Q2" in the box to let the platform know where to find the files (it will look now then in /inputs/24Q2".
 
