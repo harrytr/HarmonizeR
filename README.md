@@ -72,6 +72,7 @@ The main differences are:
 - Stratification of analyses now available across user selected features (for both classification or optimization)
 - Updated generated figures (heatmaps, corrplots etc.)
 - Exported optimized networks now also in .graphml format and visNetwork format
+- Deep Learning integration
 
 ## Examples of Results
 
