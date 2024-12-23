@@ -1,7 +1,6 @@
-import os
 import igraph as ig
-import pydot
-import sys
+import os, sys
+import networkx as nx
 
 def convert_dot_to_igraph(dot_path, output_path, violin_gene):
     """
@@ -12,32 +11,19 @@ def convert_dot_to_igraph(dot_path, output_path, violin_gene):
     - output_path: str, path to save the converted igraph object
     """
     try:
-        # Parse the .dot file using pydot
-        (dot_graph,) = pydot.graph_from_dot_file(dot_path)
+        # Step 1: Read the .DOT file using networkx
+        dot_graph = nx.nx_pydot.read_dot(dot_path)
         
-        # Convert the pydot graph to an igraph object
-        igraph_graph = ig.Graph(directed=dot_graph.get_type() == "digraph")
-        
-        # Add vertices
-        
-        
-        dot_graph.del_node(violin_gene, index = 1)
-        nodes = dot_graph.get_nodes()
-        
-        node_names = [node.get_name() for node in nodes if node.get_name() not in ('node', '', None)]
-        
-        print(node_names)
-        igraph_graph.add_vertices(node_names)
-        
-        
-        # Add edges
-        edges = dot_graph.get_edges()
-        edge_list = [(edge.get_source(), edge.get_destination()) for edge in edges]
-        igraph_graph.add_edges(edge_list)
-        
-        # Save the igraph object in GraphML format (compatible with R)
-        igraph_graph.write_graphml(output_path)
-        print(f"Saved igraph object to: {output_path}")
+        # Step 2: Check and process node attributes (e.g., 'color')
+        # for node, data in dot_graph.nodes(data=True):
+        #     if "fillcolor" in data:
+        #         print(f"Node {node} color: {data['fillcolor']}")  # Example output
+        #     else:
+        #         data["fillcolor"] = "none"  # Add default color if missing
+        # 
+        # Step 3: Save the graph to .graphml
+        nx.write_graphml(dot_graph, output_path)
+        print("Graph saved as .graphml with node attributes.")
         
     except Exception as e:
         print(f"Failed to process {dot_path}: {e}")

@@ -4,7 +4,16 @@ print("Loading libraries required...")
 list.of.packages <- c("shiny","shinyWidgets","shinyjs","igraph","stringr", "dplyr")
 invisible(lapply(list.of.packages, library, character.only = TRUE))
 #pip install pygraphml igraph torch torch-geometric numpy
-system("source /opt/anaconda3/bin/activate")
+library(reticulate)
+library(tidyverse)
+
+# Seeing your enviroments
+# conda_list()
+
+#Using it
+# conda_list()[[1]][1] %>% 
+#   use_condaenv(required = TRUE)
+
 
 working_directory <- getwd()
 library(renoir)
@@ -74,7 +83,7 @@ ui <- fluidPage(
 
   fillable = FALSE,
 
-  titlePanel("Harmonizer®"),
+  titlePanel("HarmonizeR®"),
   actionButton("run_ccle", "RUN EXPERIMENT", icon("play"),
                style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
 
@@ -92,7 +101,7 @@ ui <- fluidPage(
                 selectInput("violin_gene", "Select gene of interest (usually a TF):", choice = NULL, selected = "TP53..7157.", selectize = TRUE),
                 radioButtons(inputId="choice", label="Cell line dataset selection:",
                              choices=list("Run only for the selected disease" = 1, "Run for all cancer cell line samples in single run" = 2,
-                                          "Run per cancer types separately" = 3),selected = 1),
+                                          "Run per cancer types separately" = 3),selected = 2),
                 selectInput('selectfile','Select predefined celllines (/inputs/CELL_LINES):',choice = tools::file_path_sans_ext(list.files('./inputs/CELL_LINES/')),selected = "TNBC"),
 
               ),
@@ -175,23 +184,33 @@ ui <- fluidPage(
     ),
     nav_panel("Deep Learning Params",
               layout_columns(
+              checkboxInput("GNN_flag", label = "Perform GNN Classification", TRUE),
+              
               sliderInput("epochs", "Epochs:",
-                          min = 50, max = 1000,
-                          value = 100),
+                          min = 0, max = 1000,
+                          value = 100, step = 100),
 
               sliderInput("lr", "Learning Rate:",
-                          min = 0, max = 1,
-                          value = 0.001, step = 0.01),
+                          min = 0.001, max = 1,
+                          value = 0.001, step = 0.001),
 
               sliderInput("tts", "Train-to-Test Ratio:",
-                          min = 0.5, max = 1,
-                          value = 0.75, step = 0.1),
+                          min = 0.1, max = 1,
+                          value = 0.7, step = 0.1),
 
-              sliderInput("update_it", "Display update interval:",
-                          min = 1, max = 1000,
-                          value = 10, step = 10),
+              sliderInput("update_it", "Min number of observations per class:",
+                          min = 2, max = 1000,
+                          value = 10, step = 1),
+              sliderInput("bsu", "Batch size for training/testing:",
+                          min = 2, max = 1000,
+                          value = 64, step = 1),
+              sliderInput("hidden_dim", "Hidden layer dimension:",
+                          min = 2, max = 512,
+                          value = 128, step = 1),
+              sliderInput("dropout", "Dropout probability:",
+                          min = 0, max = 1,
+                          value = 0.5, step = 0.01)
               )
-
 
     ),
     nav_panel("Load new CCLE version",
@@ -266,7 +285,13 @@ server <- function(input, output,session) {
   })
 
   observe({
-
+    shinyjs::toggleState("epochs", input$GNN_flag == "TRUE")
+    shinyjs::toggleState("lr", input$GNN_flag == "TRUE")
+    shinyjs::toggleState("tts", input$GNN_flag == "TRUE")
+    shinyjs::toggleState("update_it", input$GNN_flag == "TRUE")
+    shinyjs::toggleState("bsu", input$GNN_flag == "TRUE")
+    shinyjs::toggleState("hidden_dim", input$GNN_flag == "TRUE")
+    shinyjs::toggleState("dropout", input$GNN_flag == "TRUE")
     shinyjs::toggleState("MODELS_CCLE", input$choice != 2)
     shinyjs::toggleState("selectfile", input$choice != 2)
 
@@ -369,13 +394,14 @@ server <- function(input, output,session) {
     OncotreeLineage_user <- input$OncotreeLineage
 
     folds <- input$folds
-
+    GNN_flag <- input$GNN_flag
     epochs <- input$epochs
     lr <- input$lr
     tts <- input$tts
     update_it <- input$update_it
-
-
+    bsu <- input$bsu
+    hidden_dim <- input$hidden_dim
+    dropout <- input$dropout
 
     key_opt <- input$feature
     key_opt_type <- input$comparison_type
@@ -438,6 +464,8 @@ server <- function(input, output,session) {
       clinical_features_col <- input$key_opt_clinical
     }
 
+    
+ 
     v$res <- CCLE2(cell_lines_model,
                    PMA_user,
                    Age_user,
@@ -458,7 +486,7 @@ server <- function(input, output,session) {
                    folds,
                    key_opt,
                    key_opt_type,molecular_features_col,clinical_features_col,
-                   epochs,lr,tts,update_it
+                   epochs,lr,tts,update_it, bsu, hidden_dim, dropout, GNN_flag
     )
 
     setwd(working_directory)
