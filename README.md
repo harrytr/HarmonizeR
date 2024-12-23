@@ -58,7 +58,7 @@ Harmonizer is highly updated version of the initial release of a similar platfor
 
 > Triantafyllidis, C.P. et al. (2023) ‘A machine learning and directed network optimization approach to uncover TP53 regulatory patterns’, iScience, 26(12). Available at: https://doi.org/10.1016/j.isci.2023.108291.
 
-Credits also go to Enio Gjerga, for the functions implemented (as indicated within each function).
+Credits also go to [Enio Gjerga](https://scholar.google.com/citations?user=IzQPpf0AAAAJ&hl=en), for the functions implemented (as indicated within each function).
 
 The main differences are:
 
