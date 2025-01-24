@@ -280,8 +280,9 @@ Carnival_opt <-function(iterator_index,
       GRN <- toVisNetworkData(net_base)
       GRN$nodes$name <- GRN$nodes$label
       GRN$nodes$color <- GRN$nodes$fillcolor
-      GRN$nodes$shape <- ifelse(GRN$nodes$label %in% c(paste0(violin_gene,"up"),paste0(violin_gene,"down")), "star", "circle")
+      
       GRN$nodes$label <- ifelse(GRN$nodes$fillcolor == "lavender", paste0(GRN$nodes$label,"up"),paste0(GRN$nodes$label,"down"))
+      GRN$nodes$shape <- ifelse(GRN$nodes$label %in% c(paste0(violin_gene,"up"),paste0(violin_gene,"down")), "star", "circle")
       GRN$edges$id <- NULL
       print("Visualising ...")
       print(paste0(carnival_path, "/", names(tfList)[i],"/GRAPH",".html"))
@@ -305,9 +306,10 @@ Carnival_opt <-function(iterator_index,
       
       GRN <- toVisNetworkData(net_base)
       GRN$nodes$name<- GRN$nodes$label
-      GRN$nodes$color <- GRN$nodes$fillcolor
-      GRN$nodes$shape <- ifelse(GRN$nodes$label %in% c(paste0(violin_gene,"up"),paste0(violin_gene,"down")), "star", "circle")
+      GRN$nodes$color <- NULL
+      
       GRN$nodes$label <- ifelse(GRN$nodes$fillcolor == "lavender", paste0(GRN$nodes$label,"up"),paste0(GRN$nodes$label,"down"))
+      GRN$nodes$shape <- ifelse(GRN$nodes$label %in% c(paste0(violin_gene,"up"),paste0(violin_gene,"down")), "star", "circle")
       GRN$edges$id <- NULL
       
       gg <- g
