@@ -7,10 +7,10 @@ df <- as.data.frame(read.csv("GNN_labels.csv"))
 
 
 
-df <- df %>% mutate(labels = case_when((str_detect(filename, paste0("missense")) == TRUE & str_detect(filename, paste0("Metastatic")) == TRUE) ~ "missense_Metastatic",
-                                      (str_detect(filename, paste0("WT")) == TRUE & str_detect(filename, paste0("Metastatic")) == TRUE) ~ "WT_Metastatic",
-                                      (str_detect(filename, paste0("missense")) == TRUE & str_detect(filename, paste0("Primary")) == TRUE) ~ "missense_Primary",
-                                      (str_detect(filename, paste0("WT")) == TRUE & str_detect(filename, paste0("Primary")) == TRUE) ~ "WT_Primary"))
+#df <- df %>% mutate(labels = case_when((str_detect(filename, paste0("missense")) == TRUE & str_detect(filename, paste0("Metastatic")) == TRUE) ~ "missense_Metastatic",
+#                                      (str_detect(filename, paste0("WT")) == TRUE & str_detect(filename, paste0("Metastatic")) == TRUE) ~ "WT_Metastatic",
+#                                      (str_detect(filename, paste0("missense")) == TRUE & str_detect(filename, paste0("Primary")) == TRUE) ~ "missense_Primary",
+#                                      (str_detect(filename, paste0("WT")) == TRUE & str_detect(filename, paste0("Primary")) == TRUE) ~ "WT_Primary"))
 
 
 
@@ -20,8 +20,8 @@ df <- df %>% mutate(labels = case_when((str_detect(filename, paste0("missense"))
 #                                       (str_detect(filename, paste0("_isDeleterious")) == TRUE & str_detect(filename, paste0("Primary")) == TRUE) ~ "D_Primary"))
 
 
-# df <- df %>% mutate(labels = case_when((str_detect(filename, paste0("_Metastatic")) == TRUE) ~ "Metastatic",
-#                                        (str_detect(filename, paste0("_Primary"))== TRUE) ~ "Primary"))
+df <- df %>% mutate(labels = case_when((str_detect(filename, paste0("_Metastatic")) == TRUE) ~ "Metastatic",
+                                        (str_detect(filename, paste0("_Primary"))== TRUE) ~ "Primary"))
                                       #(str_detect(filename, paste0("WT")) == TRUE) ~ "WT"))
  
 
@@ -39,7 +39,7 @@ print(nrow(df))
 print(nrow(df))
 print(unique(df$labels))
 print(table(df$labels))
-write.csv(df,"GNN_labels_PM2.csv")
+write.csv(df,"GNN_labels_MT.csv")
 
 
 }

@@ -13,15 +13,8 @@ def convert_dot_to_igraph(dot_path, output_path, violin_gene):
     try:
         # Step 1: Read the .DOT file using networkx
         dot_graph = nx.nx_pydot.read_dot(dot_path)
-        
-        # Step 2: Check and process node attributes (e.g., 'color')
-        # for node, data in dot_graph.nodes(data=True):
-        #     if "fillcolor" in data:
-        #         print(f"Node {node} color: {data['fillcolor']}")  # Example output
-        #     else:
-        #         data["fillcolor"] = "none"  # Add default color if missing
-        # 
-        # Step 3: Save the graph to .graphml
+        for node in dot_graph.nodes:
+            dot_graph.nodes[node]['name'] = str(node)
         nx.write_graphml(dot_graph, output_path)
         print("Graph saved as .graphml with node attributes.")
         

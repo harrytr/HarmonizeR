@@ -1,6 +1,6 @@
 #CARNIVAL module
 
-Carnival_opt <-function(iterator_index,
+Carnival_opt_old <-function(iterator_index,
                         df_EM,
                         results_dir,
                         inputs_dir,
@@ -159,9 +159,9 @@ Carnival_opt <-function(iterator_index,
     if (length(list.files(temp_dir)) == 0 ){
       if (!(is.null(final_input) )){
         try(
-          # res <- runCARNIVAL(inputObj = NULL, measObj = tfList[[ii]], netObj = network,weightObj = NULL,
-          #                                           solverPath = cplex_path , solver = "cplex",
-          #                                          dir_name = temp_dir, mipGAP = GAP, threads = cpu_threads,limitPop = 10, poolCap = 10)
+        # res <- runCARNIVAL(inputObj = NULL, measObj = tfList[[ii]], netObj = network,weightObj = NULL,
+        #                                           solverPath = cplex_path , solver = "cplex",
+        #                                          dir_name = temp_dir, mipGAP = GAP, threads = cpu_threads,limitPop = 10, poolCap = 10)
         )
         if (final_input == TRUE) {
           print(paste0(violin_gene," knockdown..."))
@@ -228,13 +228,7 @@ Carnival_opt <-function(iterator_index,
     base_file <- paste0(temp_dir,"//network_solution.graphml")
     
     new_name_gml <- paste0(temp_dir,"//", as.character(names(tfList)[i]),".graphml")
-    if (file.exists(new_name_gml)){
-      
-      print("Removing old graphml file")
-      try(
-        file.remove(new_name_gml)
-      )
-    }
+    
     
     if (file.exists(base_file)){
       
@@ -243,6 +237,10 @@ Carnival_opt <-function(iterator_index,
         file.rename(base_file, new_name_gml)
       )
       
+      
+      try(
+        my_data <- read.delim(base_file2)
+      )
       
       labels_csv[i,1] <- paste0(as.character(names(tfList)[i]),".graphml")
       labels_csv[i,2] <- names(tfList)[i]
@@ -274,41 +272,65 @@ Carnival_opt <-function(iterator_index,
     # ================ COMMUNITY DETECTION =======================
     
     if (is.null(net_base) == FALSE) {
+      print("Calculating centralities per community...")
+      #g0 <- graph_from_literal()
+      #g <- graph_from_literal()
+      g <- as.directed(net_base)
+      g0 <- as.directed(base)
       
-
       print("Converting to visNetwork object")
-      GRN <- toVisNetworkData(net_base)
-      GRN$nodes$name <- GRN$nodes$label
-      GRN$nodes$color <- GRN$nodes$fillcolor
-      GRN$nodes$shape <- ifelse(GRN$nodes$label %in% c(paste0(violin_gene,"up"),paste0(violin_gene,"down")), "star", "circle")
-      GRN$nodes$label <- ifelse(GRN$nodes$fillcolor == "lavender", paste0(GRN$nodes$label,"up"),paste0(GRN$nodes$label,"down"))
-      GRN$edges$id <- NULL
+      GRN <- toVisNetworkData(g0)
+      #print(head(GRN$edges))
+      #readline(prompt = "Press [enter] to continue")
+      print("Done")
+      print(vertex_attr_names(g0))
+      V(g0)$name <- V(g0)$id
+      V(g0)$label <- V(g0)$name
+      
+      print("Fixing Labels from .DOT ...")
+      
+      for (j in 1:length(V(g0)$label )){
+        temp_gene <- strsplit(V(g0)$label[j], split=' [', fixed=TRUE)
+        temp_gene <- str_trim(temp_gene[[1]][1])
+        expression <- paste0(paste0(temp_gene," \\[style=filled, color=red, fillcolor=lavender"),'|',paste0(temp_gene," \\[style=filled, color=black, fillcolor=lavender"))
+        V(g0)$label[j] <- paste0(temp_gene,ifelse(stringr::str_detect(my_data,expression), "up", "down"))# Gene name
+        
+      }
       print("Visualising ...")
       print(paste0(carnival_path, "/", names(tfList)[i],"/GRAPH",".html"))
-
+      #################original graph#########################
+      nodes <- data.frame(id =  V(g0)$name,
+                          label = V(g0)$label,
+                          shape = ifelse(V(g0)$label %in% c(paste0(violin_gene,"up"),paste0(violin_gene,"down")), "star", "circle"),
+                          color = ifelse(stringr::str_detect(V(g0)$label,"up"), "blue", "red"))
+      
       mainP = paste0("Optimized network for:: ",names(tfList)[i],"::" , violin_gene)
-      sp_g_6 <- visNetwork(GRN$nodes,GRN$edges, main = mainP, height = "700px", width = "100%") %>%
+      sp_g_6 <- visNetwork(nodes,GRN$edges, main = mainP, height = "700px", width = "100%") %>%
         visEdges(labelHighlightBold= "TRUE",arrows = "to") %>%
         visInteraction(zoomView = TRUE) %>%
         visOptions(highlightNearest = TRUE,nodesIdSelection = TRUE) %>%
         visPhysics(stabilization = FALSE)  %>%
         visEdges(smooth = FALSE) %>% visLayout(hierarchical = TRUE)
       try(
-        visSave(sp_g_6, file = paste0(carnival_path, "/", names(tfList)[i],"/GRAPH",".html"), selfcontained = TRUE, background = "white")
+        visSave(sp_g_6, file = paste0(carnival_path, "/", names(tfList)[i],"/GRAPH",".html"), selfcontained = FALSE, background = "white")
       )
       ####################################################
-      g <- as.directed(net_base)
+      
       sp_g <- cluster_edge_betweenness(g)
       V(g)$community <- sp_g$membership
+      my_data <- read.delim(base_file2)
+      net_data <- toVisNetworkData(g)
       V(g)$name <- V(g)$id
       V(g)$label <- V(g)$name
+      my_data <- read.delim(base_file2)
       
-      GRN <- toVisNetworkData(net_base)
-      GRN$nodes$name<- GRN$nodes$label
-      GRN$nodes$color <- GRN$nodes$fillcolor
-      GRN$nodes$shape <- ifelse(GRN$nodes$label %in% c(paste0(violin_gene,"up"),paste0(violin_gene,"down")), "star", "circle")
-      GRN$nodes$label <- ifelse(GRN$nodes$fillcolor == "lavender", paste0(GRN$nodes$label,"up"),paste0(GRN$nodes$label,"down"))
-      GRN$edges$id <- NULL
+      for (j in 1:length(V(g)$label )){
+        temp_gene <- strsplit(V(g)$label[j], split=' [', fixed=TRUE)
+        temp_gene <- str_trim(temp_gene[[1]][1])
+        expression <- paste0(paste0(temp_gene," \\[style=filled, color=red, fillcolor=lavender"),'|',paste0(temp_gene," \\[style=filled, color=black, fillcolor=lavender"))
+        V(g)$label[j] <- paste0(temp_gene,ifelse(stringr::str_detect(my_data,expression), "up", "down"))# Gene name
+        
+      }
       
       gg <- g
       V(gg)$name <- V(gg)$label
@@ -316,7 +338,6 @@ Carnival_opt <-function(iterator_index,
       sub_objects <- c()
       unique_communities <- unique(V(gg)$community)
       temp_vertex <- c()
-      print("Calculating centralities per community...")
       for (ie in 1: length(unique_communities)){
         OV <- which(V(gg)$community == unique_communities[ie])
         g_subgraph_temp <- induced_subgraph(gg, OV)
@@ -331,12 +352,14 @@ Carnival_opt <-function(iterator_index,
       top_bc_network <-  c(top_bc_network, paste0(names(tfList)[i]))
       top_bc_vertex <- c(top_bc_vertex,signature)
       
+      nodes <- data.frame(id =  V(g)$name,
+                          group = V(g)$community,
+                          label = V(g)$label,
+                          shape = ifelse(V(g)$label %in% c(paste0(violin_gene,"up"),paste0(violin_gene,"down")), "star", "circle"))
       
-      GRN$nodes$group <- V(g)$community
-  
       mainP = paste0("Communities of optimized network for:: ",names(tfList)[i],"::" , violin_gene)
       print(paste0("Saving visualized graph for ", print(names(tfList)[i])))
-      sp_g_5 <- visNetwork(GRN$nodes,GRN$edges, main = mainP, height = "700px", width = "100%") %>%
+      sp_g_5 <- visNetwork(nodes,net_data$edges, main = mainP, height = "700px", width = "100%") %>%
         visEdges(labelHighlightBold= "TRUE",arrows = "to") %>%
         visInteraction(zoomView = TRUE) %>%
         visOptions(highlightNearest = TRUE,nodesIdSelection = TRUE,selectedBy = "group") %>%
@@ -351,7 +374,7 @@ Carnival_opt <-function(iterator_index,
       
       print("Saving Community detection graph...")
       try(
-        visSave(sp_g_5, file = paste0(carnival_path, "/", names(tfList)[i],"/CM",".html"), selfcontained = TRUE, background = "white")
+        visSave(sp_g_5, file = paste0(carnival_path, "/", names(tfList)[i],"/CM",".html"), selfcontained = FALSE, background = "white")
       )
       print("Done")
       
@@ -360,7 +383,7 @@ Carnival_opt <-function(iterator_index,
   print("Creating the labels for GNN...")
   
   # labels_csv$labels <- sapply(strsplit(labels_csv$mutation, split='_', fixed=TRUE),function(x) paste0(tail(x,1)))
-  
+
   labels_csv$labels <- sapply(strsplit(labels_csv$mutation, split='_', fixed=TRUE),function(x) paste0(x[1],"_",x[2]))
   labels_csv <- labels_csv %>% dplyr::mutate(labels = if_else(str_detect(labels,"WT"),str_sub(labels, start = 1, end = 2) , labels_csv$labels))
   #labels_csv  <- labels_csv %>% group_by(mutation) %>% mutate(label = cur_group_id())
@@ -373,7 +396,7 @@ Carnival_opt <-function(iterator_index,
   no_mutations <- length(mutations)
   print(no_mutations)
   print(mutations)
-  
+
   all_bc <- cbind(top_bc_network,top_bc_vertex)
   write.csv(all_bc,paste0(carnival_path,"/Betweenness_vertex_",disease_filename_j,".csv"))
   signatures <- list()
