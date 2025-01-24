@@ -241,29 +241,42 @@ def main(directory, csv_file, num_epochs, learning_rate, tts, min_obs, bsu, hidd
     print(f"Misclassified Graphs: {misclassified}")
     print(f"Misclassification Percentage: {misclassification_percentage:.2f}%")
 
-    # Compute ROC curve and AUC for each class
-    fpr = dict()
-    tpr = dict()
-    roc_auc = dict()
-    for i in range(len(unique_labels)):
-        fpr[i], tpr[i], _ = roc_curve(y_true_binarized[:, i], y_pred_prob[:, i])
-        roc_auc[i] = auc(fpr[i], tpr[i])
-    
-    # Plot ROC curve for each class
-    plt.figure(figsize=(10, 8))
-    for i in range(len(unique_labels)):
-        plt.plot(fpr[i], tpr[i], label=f"Class {reverse_label_mapping[i]} (AUC = {roc_auc[i]:.2f})")
-    
-    # Plot diagonal
-    plt.plot([0, 1], [0, 1], "k--", label="Random Guess")
-    plt.xlim([0.0, 1.0])
-    plt.ylim([0.0, 1.05])
-    plt.xlabel("False Positive Rate")
-    plt.ylabel("True Positive Rate")
-    plt.title("ROC Curve (One-vs-Rest)")
-    plt.legend(loc="lower right")
-    plt.savefig('ROC.png',dpi=300,bbox_inches='tight')
-    plt.show()
+    if len(unique_labels) == 2:
+      # Special handling for binary classification
+      fpr, tpr, _ = roc_curve(y_true, y_pred_prob[:, 1])
+      roc_auc = auc(fpr, tpr)
+      plt.figure(figsize=(10, 8))
+      plt.plot(fpr, tpr, label=f"Class {reverse_label_mapping[1]} (AUC = {roc_auc:.2f})")
+      plt.plot([0, 1], [0, 1], "k--", label="Random Guess")
+      plt.xlim([0.0, 1.0])
+      plt.ylim([0.0, 1.05])
+      plt.xlabel("False Positive Rate")
+      plt.ylabel("True Positive Rate")
+      plt.title("ROC Curve (Binary Classification)")
+      plt.legend(loc="lower right")
+      plt.savefig('ROC_binary.png', dpi=300, bbox_inches='tight')
+      plt.show()
+    else:
+      # Multiclass case (existing logic)
+      fpr = dict()
+      tpr = dict()
+      roc_auc = dict()
+      for i in range(len(unique_labels)):
+          fpr[i], tpr[i], _ = roc_curve(y_true_binarized[:, i], y_pred_prob[:, i])
+          roc_auc[i] = auc(fpr[i], tpr[i])
+      plt.figure(figsize=(10, 8))
+      for i in range(len(unique_labels)):
+          plt.plot(fpr[i], tpr[i], label=f"Class {reverse_label_mapping[i]} (AUC = {roc_auc[i]:.2f})")
+      plt.plot([0, 1], [0, 1], "k--", label="Random Guess")
+      plt.xlim([0.0, 1.0])
+      plt.ylim([0.0, 1.05])
+      plt.xlabel("False Positive Rate")
+      plt.ylabel("True Positive Rate")
+      plt.title("ROC Curve (One-vs-Rest)")
+      plt.legend(loc="lower right")
+      plt.savefig('ROC_multiclass.png', dpi=300, bbox_inches='tight')
+      plt.show()
+
     
     # PCA Visualization
     def plot_pca(embeddings, true_labels, predicted_labels):
