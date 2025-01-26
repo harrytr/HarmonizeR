@@ -313,7 +313,7 @@ Carnival_opt <-function(iterator_index,
       GRN$edges$id <- NULL
       
       gg <- g
-      V(gg)$name <- V(gg)$label
+      V(gg)$name <- GRN$nodes$label
       sub_graphs <- c()
       sub_objects <- c()
       unique_communities <- unique(V(gg)$community)
@@ -345,12 +345,7 @@ Carnival_opt <-function(iterator_index,
         visPhysics(stabilization = FALSE)  %>% visIgraphLayout(layout = "layout_nicely") %>%
         visEdges(smooth = FALSE)
       
-      
-      nodes <- data.frame(id =  V(g)$name,
-                          label = V(g)$label,
-                          shape = ifelse(V(g)$label %in% c(paste0(violin_gene,"up"),paste0(violin_gene,"down")), "star", "circle"))
-      
-      
+
       print("Saving Community detection graph...")
       try(
         visSave(sp_g_5, file = paste0(carnival_path, "/", names(tfList)[i],"/CM",".html"), selfcontained = TRUE, background = "white")
