@@ -59,11 +59,15 @@ prepare_Carnival <- function(mapk_data,
     mapk_data_carnival <- NULL
     mapk_data_carnival <- merge(df_merged,filtered_expression_matrix, by = "CELLLINE", all = TRUE)
     mapk_data_carnival <- as.data.frame(mapk_data_carnival)
-    #write.csv(mapk_data_carnival,"test.csv")
+    
     setwd(results_dir)
     
     mapk_data_carnival$CELLLINE <-NULL
     colnames(mapk_data_carnival) <- sapply(strsplit(colnames(mapk_data_carnival), split='..', fixed=TRUE),function(x) (x[1]))
+    #write.csv(mapk_data_carnival,"CDL_EM.csv")
+    #temp <- mapk_data_carnival[,-c(1)]
+    #write.csv(temp,"CDL_EM_clean.csv")
+    #stop()
     carnival <- t(mapk_data_carnival)
     carnival <- as.data.frame(carnival)
     colnames(carnival) <- mapk_data_carnival[,1]
