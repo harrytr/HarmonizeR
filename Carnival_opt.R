@@ -394,7 +394,7 @@ Carnival_opt <-function(iterator_index,
   }
   print("All signatures:")
   print(signatures)
-  save(signatures, file="signatures.RData")
+  save(signatures, file=paste0("signatures_",violin_gene,".RData"))
   UR <- upset(fromList(signatures), nsets = no_mutations,
               order.by = "freq",decreasing = T, empty.intersections = "on",sets.bar.color = "#56B4E9")
   print(UR)
