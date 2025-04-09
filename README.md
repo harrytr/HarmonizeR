@@ -74,16 +74,4 @@ The main differences are:
 - Exported optimized networks now also in .graphml format and visNetwork format
 - Deep Learning integration
 
-## Examples of Results
-
-![Plots_cancers_TNBC_24Q2 pdf-image-002](https://github.com/user-attachments/assets/a5a9e624-91b0-4837-ae09-7edec9fc50c7)
-![Plots_cancers_TNBC_24Q2 pdf-image-003](https://github.com/user-attachments/assets/b2c61a23-79fa-46bc-bf3f-7fa3e6e0bec9)
-![Plots_cancers_TNBC_24Q2 pdf-image-008](https://github.com/user-attachments/assets/cb3a57ec-9cfb-4c1e-af4d-4703557c2fe9)
-![Plots_cancers_TNBC_24Q2 pdf-image-010](https://github.com/user-attachments/assets/afbf00da-002c-4b72-895a-3f65029fc28f)
-![Plots_cancers_TNBC_24Q2 pdf-image-012](https://github.com/user-attachments/assets/5be0d6ad-7cb7-41c3-bc4b-dde8d6ab10e9)
-![Plots_cancers_TNBC_24Q2 pdf-image-017](https://github.com/user-attachments/assets/63b7e2ef-ea01-416b-9d22-17a21e2cff82)
-![Plots_cancers_TNBC_24Q2 pdf-image-016](https://github.com/user-attachments/assets/f9925b51-0344-4383-b283-915ebb421378)
-![net](https://github.com/user-attachments/assets/d2422c61-2984-4030-850d-aae43e381960)
-![net2](https://github.com/user-attachments/assets/88117405-3259-4c21-a021-2472cf3ad37c)
-
 
