@@ -21,7 +21,7 @@ Carnival_opt <-function(iterator_index,
   library(progress)
   library(dorothea)
   library(progeny)
-  
+  cpu_threads <- 2
   mutations <- c(mutations, "WT")
   
   if (.Platform$OS.type == "unix") {
@@ -34,16 +34,23 @@ Carnival_opt <-function(iterator_index,
   print("Preparing the viper regulon list...")
   
   print(paste0("Standarizing Expression Matrix for the regulons of ", violin_gene, " ..."))
+  dtoken <- "NOTisDeleterious|WT"
+  #### FOR TCGA 
+
+  # Read the CSV file
+  load(paste0(inputs_dir,"/TCGA_MT.RData"))
+  disease_filename_j <- "TCGA"
+  dtoken <- "_False_"
+  #####
+  print("Expression matrix read...")
   
-  df_EM <- scale(df_EM)
-  df_EM <- as.data.frame(df_EM)
   
   # CREATE THE INPUT REGULON FOR CARNIVAL
   print("Creating the VIPER regulon object for CARNIVAL...")
   
   
   #=======================================================================
-  
+
   print("Getting data from OmniPathR...")
   regulon_df <- import_dorothea_interactions(organism=9606)
   save(regulon_df, file = "dorothea_omnipath_interactions.RData")
@@ -98,15 +105,16 @@ Carnival_opt <-function(iterator_index,
   load(file = paste0(inputs_dir,"/dorothea_hs_pancancer.RData"))
   dorothea_hs_pancancer <- dorothea_hs_pancancer %>% dplyr::filter(confidence %in% c("A","B","C","D","E"))
   print("Calculating TF activities...")
-  TF_activities  = as.data.frame(dorothea::run_viper(df_EM, dorothea_hs_pancancer,
-                                                     options = list(method = "none", minsize = 1,  nes = T,
-                                                                    eset.filter = FALSE, cores = 1,
-                                                                    verbose = T)))
+  # TF_activities  = as.data.frame(dorothea::run_viper(df_EM, dorothea_hs_pancancer,
+  #                                                   options = list(method = "none", minsize = 1,  nes = T,
+  #                                                                  eset.filter = FALSE, cores = 1,
+  #                                                                  verbose = T)))
   
   print("Saving the regulon activities from Viper/DoRothEA...")
-  save(TF_activities, file="measurements.RData")
-  
-  tfList <- generateDataframeTF(df = TF_activities, top = top_user, 1:ncol(df_EM))
+  #save(TF_activities, file="measurements.RData")
+  load("measurements.RData")
+  top_user <- 100
+  tfList <- generateDataframeTF(df = TF_activities, top = top_user, 1:ncol(TF_activities))
   
   resList <- list()
   list_of_graphs <- c()
@@ -140,7 +148,7 @@ Carnival_opt <-function(iterator_index,
     
     
     final_input <- NULL
-    final_input <- ifelse(str_detect(names(tfList)[ii],"NOTisDeleterious|WT"),FALSE,TRUE)
+    final_input <- ifelse(str_detect(names(tfList)[ii],dtoken),FALSE,TRUE)
     
     setwd(temp_dir)
     print(temp_dir)
@@ -346,6 +354,8 @@ Carnival_opt <-function(iterator_index,
     }
   }
   print("Creating the labels for GNN...")
+  
+  # labels_csv$labels <- sapply(strsplit(labels_csv$mutation, split='_', fixed=TRUE),function(x) paste0(tail(x,1)))
   
   labels_csv$labels <- sapply(strsplit(labels_csv$mutation, split='_', fixed=TRUE),function(x) paste0(x[1],"_",x[2]))
   labels_csv <- labels_csv %>% dplyr::mutate(labels = if_else(str_detect(labels,"WT"),str_sub(labels, start = 1, end = 2) , labels_csv$labels))

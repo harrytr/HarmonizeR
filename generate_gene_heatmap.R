@@ -1,4 +1,4 @@
-
+library(pheatmap)
 # Define the function for creating the heatmap
 generate_gene_heatmap <- function(gene_lists) {
   # Clean the gene names by removing "up" and "down" suffixes
@@ -49,7 +49,7 @@ generate_gene_heatmap <- function(gene_lists) {
            show_colnames = TRUE,
            cluster_rows = TRUE,
            cluster_cols = TRUE,
-           fontsize_col = 5, # Adjust the size of the gene names for readability
+           fontsize_col = 8, # Adjust the size of the gene names for readability
            fontsize_row = 10, # Adjust the size of the list names
            main = "Regulon Gene Activity Heatmap per TP53 mutation type")
 }

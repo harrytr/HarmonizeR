@@ -64,10 +64,6 @@ prepare_Carnival <- function(mapk_data,
     
     mapk_data_carnival$CELLLINE <-NULL
     colnames(mapk_data_carnival) <- sapply(strsplit(colnames(mapk_data_carnival), split='..', fixed=TRUE),function(x) (x[1]))
-    #write.csv(mapk_data_carnival,"CDL_EM.csv")
-    #temp <- mapk_data_carnival[,-c(1)]
-    #write.csv(temp,"CDL_EM_clean.csv")
-    #stop()
     carnival <- t(mapk_data_carnival)
     carnival <- as.data.frame(carnival)
     colnames(carnival) <- mapk_data_carnival[,1]
@@ -85,7 +81,6 @@ prepare_Carnival <- function(mapk_data,
     # df_EM <- select(df_EM, -contains("WT"))
     # }
 
-    #write.csv(mapk_data_carnival,"Carnival_EM.csv")
     df_EM <- df_EM[,-1]
     write.csv(df_EM,"Carnival_input.csv")
 
@@ -128,10 +123,5 @@ prepare_Carnival <- function(mapk_data,
     }
     
       
-
-    # CASE TCGA :
-
-
-
 
 } # end of function

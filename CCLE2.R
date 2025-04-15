@@ -39,33 +39,12 @@ CCLE2 <-function(disease_name,
     key_opt <- "WT"
     key_opt_type <- "Equal"
   }
-  # SHINY VERSION
-  ###########################################################################################################
-  # This function analyzes RNAseq data from the CCLE database and uses a user selected Gene Regulatory Network
-  # to collect a list of genes and check whether a subset of those were mutated in a specific disease (user)
-  # by reporting a pairwise Student T-test of the means of the expression profiles of the mutant cell lines
-  # versus the non-mutant (abused terminology as WT) and the log2 fold change of them.
-  # Copyright : Charalampos Triantafyllidis, Francesca M. Buffa
-  #             Department of Oncology, University of Oxford, UK, 2019-2020
-  # Output:
-  #       pdf file with all plots collated for the disease as selected by user
-  # Charalampos P. Triantafyllidis, 2020
-  ############################################################################################################
 
-  ######################### MODIFY AS REQUIRED BELOW ############################
-  ###############################################################################
-  #    USERS MUST DEFINE THE WD IN THE PARENT FOLDER WHERE THIS FUNCTION IS SAVED, MANUALLY
-  #    THEY MUST ALSO DEFINE THE PATH BELOW FOR CPLEX , REQUIRED TO RUN CARNIVAL LATER ON
   #options(warn=-1)
   wd = getwd()
   graphics.off()
-  #cplex_path = "C:/Program Files/IBM/ILOG/CPLEX_Studio129/cplex/bin/x64_win64"
-  ###############################################################################
-  # load the multinomial regression package
-  # this predicts the type of mutation of the violin_gene based on
-  # the expression levels of its regulons across all CCCLE samples
+ 
   source(paste0(wd,'/analysis.R'))
-
   source(paste0(wd,'/runDoRothEA.R'))
   source(paste0(wd,'/createRegulonList.R'))
   source(paste0(wd,'/generateDataframeTF.R'))
@@ -223,11 +202,6 @@ CCLE2 <-function(disease_name,
   regulons_dir = paste0(inputs_dir, "/", "regulons.csv")
   regulons_csv <- as.data.frame(read.csv(regulons_dir, header = TRUE))
 
-  #regulon_df <- import_omnipath_interactions(organism = 9606)
-  #regulon_df <- regulon_df[which(regulon_df$is_directed==1), ] #keeping only directed
-  #regulon_df <- regulon_df[which((regulon_df$is_stimulation+regulon_df$is_inhibition)==1), ] #keeping only regulons which are either activations/inhibitions
-
-
   regulons <- regulons_csv  %>%  dplyr:: filter(source_genesymbol %in% violin_gene)
   regulons_violin_gene <- NULL
 
@@ -337,7 +311,6 @@ CCLE2 <-function(disease_name,
 
     }
     print(disease_cell_lines)
-    #violin_column <- rep(0, length(disease_cell_lines))
     violin_column <- NULL
 
     ################################Processing names of genes#################
@@ -345,7 +318,6 @@ CCLE2 <-function(disease_name,
     exact_genes <- paste0("^",genes_HGNC, "$", collapse="|")
 
     genes <- paste0(genes_HGNC,"\\s*?\\.{2}",collapse="|")
-    #genes <- paste0(genes_HGNC,"..ENSG000", collapse="|")
     genes0 <- paste0("\\b",genes_HGNC,"\\s*?\\.{2}\\b", collapse="|")
     genes_e <- paste0("^(", paste0("CELLLINE|",genes), ")")
     genes_cn <- paste0("^(", paste0("cell_lines|",genes0), ")")
@@ -365,12 +337,6 @@ CCLE2 <-function(disease_name,
     cell_line_map <- merge(names_mat,small_filtered_expression_matrix, by = "CELLLINE")
     write.csv(cell_line_map,paste0(cell_line_IDs_names,"/","_cell_line_mapping_",disease_filename[j]))
     colnames(names_mat) <- c("cell_lines","CCLE_ID")
-    # prepare the calls for the GYSTIC data for violin_gene
-    #print(paste0("Reading GYSTIC cBioPortal calls for ", violin_gene,"..."))
-    #calls <- read.table(file = paste0(inputs_dir,"/calls.txt"), sep = '\t', header = TRUE)
-    #colnames(calls)[2] <- "CCLE_ID"
-    #calls <- merge(calls,names_mat, by = "CCLE_ID")
-
 
     if (ncol(violin_gene_E)!=2) {
       print(paste0("No expression data was found for ", violin_gene, ". Exiting..."))
@@ -555,7 +521,6 @@ CCLE2 <-function(disease_name,
 
 
       write.csv(cloned,"cloned.csv")
-      #non_unite_data <- non_unite_data[order(non_unite_data[,'Variant_Classification']), ]
       print("Uniting molecular features..")
       data_heatmap <-mapk_data
 
@@ -564,7 +529,6 @@ CCLE2 <-function(disease_name,
       # Transform all columns so there is no confusion from multiple TRUEs etc
       valid_values <- c("TRUE","FALSE")
       for (i in 1:ncol(mapk_data)) {
-        #index <- which(colnames(mapk_data)=="isDeleterious")
         if (all(mapk_data[,i] %in% valid_values)) {
           print(paste0("Column ", colnames(mapk_data)[i], " found to be only logical"))
           print(paste0("Converting to {",colnames(mapk_data)[i],",", paste0("NOT",colnames(mapk_data)[i]),"}"))
@@ -626,10 +590,6 @@ CCLE2 <-function(disease_name,
 
         
         names_mat_WT$Variant_Classification <- paste0("WT_", names_mat_WT$Variant_Classification)
-        #names_mat_WT$Variant_Classification <- make.unique(names_mat_WT$Variant_Classification, sep = "_")
-        #names_mat_WT <- names_mat_WT %>% dplyr::select(c("CELLLINE", "Variant_Classification"))
-        #write.csv(names_mat_WT,"WT_expression.csv")
-        ########################################################
         
         
         prepare_Carnival(mapk_data,
@@ -1012,12 +972,6 @@ CCLE2 <-function(disease_name,
         geom_boxplot(width=.1,notch = FALSE,  outlier.size = 0, color="black",lwd=1.2, alpha = 0.7, position = dodge) +
         geom_point( shape = 21,size=2, position = dodge, color="black",alpha=1) +
 
-
-        #geom_label_repel(aes(label=total$cell_lines),
-        #                 box.padding   = 0.5,
-        #                 point.padding = 0.005, size = 1.8) +
-
-
         geom_violin(alpha=0.2,position = dodge,trim= FALSE) +
         ylab(  c("Expression (log2 values)")  )  +
         xlab(  c(paste0("Mutation variation in ", disease_filename[j])) ) +
@@ -1081,10 +1035,6 @@ CCLE2 <-function(disease_name,
       genes_cn <- paste0("^(", paste0("cell_lines|",genes0), ")")
 
       test_data <- data.frame()
-
-
-      # expression
-      #write.csv(pairs_GC_alp,"pairs_GC_alp0.csv")
 
       test_data <- expr_matrix_csv  %>% dplyr::select(matches(genes_e))
       test_data$WT <- ifelse(expr_matrix_csv$CELLLINE %in% pairs_GC_alp$Tumor_Sample_Barcode, "MT", "WT")
@@ -1150,16 +1100,12 @@ CCLE2 <-function(disease_name,
 
       pairs_GC_alp_temp<- pairs_GC_alp_temp %>% dplyr::select("cell_lines","Variant_Classification","Codon_Change","Protein_Change","isDeleterious", "isHotspot")
 
-
-      #write.csv(total_o,"total_o.csv")
-      #write.csv(pairs_GC_alp_temp,"pairs_GC_alp_temp.csv")
       total <- merge(total_o, pairs_GC_alp_temp, by = "cell_lines", all = TRUE)
 
       total <- total[!is.na(total$State),]
 
       total  <- mutate(total, Variant_Classification = ifelse(is.na(Variant_Classification), "WT", as.character(Variant_Classification)))
 
-      #total  <- mutate(total, isHotspot = ifelse(Protein_Change %in% hotspots_bkp, TRUE, FALSE))
       write.csv(total,"total.csv")
 
 
@@ -1234,8 +1180,6 @@ CCLE2 <-function(disease_name,
                        " \n (source data-sets: DepMap Public  ", dataset_version, ")")
 
         total2 <- total[!is.na(total$GYSTIC_CALLS),]
-        #ggplot(aes(x=reorder(carrier,-speed, na.rm = TRUE)
-        # ggplot(data = total2,aes(x = State, y = Expression_log2,
 
         sp777 <- ggplot(data = total2,aes(x = State,y = Expression_log2, fill = GYSTIC_CALLS))+
           #scale_fill_viridis_d( option = "D")+
@@ -1255,12 +1199,6 @@ CCLE2 <-function(disease_name,
           ggtitle(main7) +
           stat_compare_means(method = "anova", label.y = 12, size = 8)  +
           stat_compare_means(label.y = 15, size = 8)
-
-        #stat_compare_means(method = "anova", label.y = 12, size = 8)  +
-        #stat_compare_means(label.y = 14, size = 8)+
-        #stat_compare_means(method = "t.test",label.y = 16, size = 8) +
-        #stat_compare_means(method = "wilcox.test",label.y = 18, size = 8) +
-        #stat_compare_means(method = "t.test",label.y = 20, size = 8, ref.group = ".all.")
 
 
         print(sp777)
@@ -1309,40 +1247,6 @@ CCLE2 <-function(disease_name,
         plot_list <- c(plot_list,sp77)
         ggsave(filename="CCLE.png", plot=sp77)
 
-
-        #model <- aov(Expression_log2~Variant_Classification, data=total)
-        #TM <- TukeyHSD(model, conf.level=.95)
-        #GH <-games_howell_test(total, Expression_log2~Variant_Classification, conf.level = 0.95, detailed = FALSE)
-        #print(TM)
-        #print(GH)
-
-        # plt <- grouped_ggbetweenstats(
-        #     data = net_df,
-        #     x = Country, y = NumberOfFundingRounds, grouping.var= HubTags,
-        #     pairwise.display = "significant", ## display only significant pairwise comparisons
-        #     p.adjust.method = "fdr") +
-        #     font("xylab",size=12)+
-        #     font("xy",size=12)+
-        #     font("xy.text", size = 12) +
-        #     font("legend.text",size = 12) +
-        #     #stat_compare_means(method = "t.test", size = 5) +
-        #     #stat_compare_means(method = "wilcox.test", size = 5) +
-        #     theme(
-        #       axis.ticks = element_blank(),
-        #       axis.line = element_line(colour = "grey50"),
-        #       panel.grid = element_line(color = "#b4aea9"),
-        #       panel.grid.minor = element_blank(),
-        #       panel.grid.major.x = element_blank(),
-        #       panel.grid.major.y = element_line(linetype = "dashed"),
-        #       panel.background = element_rect(fill = "#fbf9f4", color = "#fbf9f4"),
-        #       plot.background = element_rect(fill = "#fbf9f4", color = "#fbf9f4")
-        #     )
-        #
-        #   print(plt)
-
-
-
-
       }
 
       if (!is.null(violin_column)) {
@@ -1355,7 +1259,6 @@ CCLE2 <-function(disease_name,
         colnames(names_mat)[1] <- "Tumor_Sample_Barcode"
         pairs_GC_alp <- merge(names_mat, pairs_GC_alp, by = "Tumor_Sample_Barcode")
 
-        #write.csv(pairs_GC_alp,"pairs_GC_alp.csv")
         sp7 <- ggplot(data = pairs_GC_alp,aes(x = Variant_Classification, y = Expression , fill = Variant_Classification))+
           #scale_fill_viridis_d( option = "D")+
           geom_boxplot(width=.1,notch = FALSE,  outlier.size = 0, color="black",lwd=1.2, alpha = 0.7, position = dodge) +

@@ -16,11 +16,6 @@ prepare_GLM_data <- function(RNAseq_matrix,
   {
 
     print("    Using CCLE expression data for GLM...")
-    #RNAseq_matrix[,-1] <- RNAseq_matrix[,-1] #the "-1" excludes column 1
-
-
-
-    # choose data for GLM, RNA raw seq counts or log2 normalized?
 
     print("    Preparing the RNAseq matrix...")
     if (GLM_all == TRUE) {
