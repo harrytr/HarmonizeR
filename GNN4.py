@@ -313,7 +313,6 @@ def main(directory, csv_file, num_epochs, learning_rate, tts, min_obs, bsu, hidd
                             file_name=file
                         )
                         genes_of_interest = ["TP53", "MYC"]
-                        
                         goi_mask = torch.tensor(
                             [1 if name in genes_of_interest else 0 for name in graph.vs["name"]],
                             dtype=torch.float
@@ -354,7 +353,7 @@ def main(directory, csv_file, num_epochs, learning_rate, tts, min_obs, bsu, hidd
 
 
     train_loader = DataLoader(train_graphs, batch_size=bsu, shuffle=True)
-    test_loader = DataLoader(test_graphs, batch_size=bsu, shuffle=False)
+    test_loader = DataLoader(test_graphs, batch_size=1, shuffle=False)
 
     model = GNN(
         input_dim=feature_matrix.shape[1],
@@ -404,6 +403,9 @@ def main(directory, csv_file, num_epochs, learning_rate, tts, min_obs, bsu, hidd
         # Update progress bar with current epoch and loss
         progress_bar.set_description(f"Epoch {epoch + 1}/{num_epochs}")
         progress_bar.set_postfix(loss=total_loss)
+        if hasattr(model, 'goi_attention_scalar') and hasattr(model, 'goi_bias'):
+          print(f"[Epoch {epoch}] Spotlight attention scalar: {model.goi_attention_scalar.item():.4f}")
+          print(f"[Epoch {epoch}] Spotlight bias norm: {torch.norm(model.goi_bias).item():.4f}")
     
     progress_bar.close()
         
