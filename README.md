@@ -52,6 +52,9 @@ Distributed under the GNU GPLv2 License. See accompanying file.
 
 ## References
 
+[Triantafyllidis et al.]([[https://pubs.rsc.org/en/content/articlehtml/2015/ib/c4ib00294f](https://www.cell.com/iscience/fulltext/S2589-0042(23)02368-4?uuid=uuid%3A7b7fb9c3-4515-46e2-8e6e-fe22489b11b9](https://www.biorxiv.org/content/10.1101/2024.12.28.630070v3.abstract))):
+
+
 Harmonizer is highly updated version of the initial release of a similar platform from:
 
 [Triantafyllidis et al.]([https://pubs.rsc.org/en/content/articlehtml/2015/ib/c4ib00294f](https://www.cell.com/iscience/fulltext/S2589-0042(23)02368-4?uuid=uuid%3A7b7fb9c3-4515-46e2-8e6e-fe22489b11b9)):
