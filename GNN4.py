@@ -189,7 +189,18 @@ def main(directory, csv_file, num_epochs, learning_rate, tts, min_obs, bsu, hidd
     label_df = pd.read_csv(csv_file)
     
     import matplotlib.pyplot as plt
-    max_per_class = 1000
+    # Report class distribution before subsampling
+    print("\n--- Class Distribution Before Subsampling ---")
+    class_counts = label_df["labels"].value_counts()
+    print(class_counts.to_frame(name="Sample Count"))
+    time.sleep(2)
+    
+    # Automatically infer max_per_class from the largest class
+    ##########################################################
+    max_per_class = class_counts.max() # change this to ENFORCE subsampling, e.g:
+    #max_per_class = 1000
+    ##########################################################
+    print(f"\nAuto-inferred max_per_class = {max_per_class} (from dominant class)")
     # Compute original and subsampled class distributions
     original_dist = label_df["labels"].value_counts().sort_index()
     label_df = label_df.groupby("labels", group_keys=False).apply(lambda x: x.sample(n=min(len(x), max_per_class), random_state=42))
