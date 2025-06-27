@@ -187,6 +187,15 @@ def main(directory, csv_file, num_epochs, learning_rate, tts, min_obs, bsu, hidd
     os.makedirs("RESULTS", exist_ok=True)
     num_workers = multiprocessing.cpu_count()
     label_df = pd.read_csv(csv_file)
+    
+    print("\n--- Class Distribution Before Subsampling ---")
+    print(label_df["labels"].value_counts().to_frame(name="Sample Count Before"))
+    # Optional class subsampling to balance overrepresented classes
+    #max_per_class = 1000  # <- adjust to control subsampling cap per class
+    #label_df = label_df.groupby("labels", group_keys=False).apply(lambda x: x.sample(n=min(len(x), max_per_class),  random_state=42))
+    #print(label_df["labels"].value_counts().to_frame(name="Sample Count After downsampling"))
+    #time.sleep(10)  # pauses for 3 seconds
+    
     is_multi = label_df['labels'].value_counts() > min_obs
     label_df = label_df[label_df['labels'].isin(is_multi[is_multi].index)]
 
@@ -312,6 +321,7 @@ def main(directory, csv_file, num_epochs, learning_rate, tts, min_obs, bsu, hidd
                             edge_attr=torch.tensor(edge_attr_list, dtype=torch.float),
                             file_name=file
                         )
+                        #genes_of_interest = ["TP53"]
                         genes_of_interest = ["TP53", "MYC"]
                         goi_mask = torch.tensor(
                             [1 if name in genes_of_interest else 0 for name in graph.vs["name"]],
