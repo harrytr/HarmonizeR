@@ -188,13 +188,33 @@ def main(directory, csv_file, num_epochs, learning_rate, tts, min_obs, bsu, hidd
     num_workers = multiprocessing.cpu_count()
     label_df = pd.read_csv(csv_file)
     
-    print("\n--- Class Distribution Before Subsampling ---")
-    print(label_df["labels"].value_counts().to_frame(name="Sample Count Before"))
-    # Optional class subsampling to balance overrepresented classes
-    #max_per_class = 1000  # <- adjust to control subsampling cap per class
-    #label_df = label_df.groupby("labels", group_keys=False).apply(lambda x: x.sample(n=min(len(x), max_per_class),  random_state=42))
-    #print(label_df["labels"].value_counts().to_frame(name="Sample Count After downsampling"))
-    #time.sleep(10)  # pauses for 3 seconds
+    import matplotlib.pyplot as plt
+    max_per_class = 1000
+    # Compute original and subsampled class distributions
+    original_dist = label_df["labels"].value_counts().sort_index()
+    label_df = label_df.groupby("labels", group_keys=False).apply(lambda x: x.sample(n=min(len(x), max_per_class), random_state=42))
+    subsampled_dist = label_df["labels"].value_counts().sort_index()
+    
+    # Labels with counts
+    original_labels = [f"{label} ({count})" for label, count in zip(original_dist.index, original_dist.values)]
+    subsampled_labels = [f"{label} ({count})" for label, count in zip(subsampled_dist.index, subsampled_dist.values)]
+    
+    # Create side-by-side pie charts
+    fig, axes = plt.subplots(1, 2, figsize=(16, 8))
+    
+    # --- Left: Before Subsampling ---
+    wedges1, _ = axes[0].pie(original_dist.values, startangle=140)
+    axes[0].set_title("Before Subsampling", fontsize=14)
+    axes[0].legend(wedges1, original_labels, title="Classes", loc="center left", bbox_to_anchor=(1.05, 0.5), fontsize=10)
+    
+    # --- Right: After Subsampling ---
+    wedges2, _ = axes[1].pie(subsampled_dist.values, startangle=140)
+    axes[1].set_title("After Subsampling", fontsize=14)
+    axes[1].legend(wedges2, subsampled_labels, title="Classes", loc="center left", bbox_to_anchor=(1.05, 0.5), fontsize=10)
+    
+    plt.tight_layout()
+    plt.savefig("RESULTS/class_balance_pies.png", dpi=600, bbox_inches='tight')
+    plt.show()
     
     is_multi = label_df['labels'].value_counts() > min_obs
     label_df = label_df[label_df['labels'].isin(is_multi[is_multi].index)]
