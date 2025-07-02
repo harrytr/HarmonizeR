@@ -1,7 +1,7 @@
 import optuna
 from GNN4 import main
 import matplotlib.pyplot as plt
-
+import json
 
 def objective(trial):
     # Suggest hyperparameters
@@ -12,7 +12,7 @@ def objective(trial):
     num_epochs = trial.suggest_categorical("num_epochs", [50,100])
     bsu = trial.suggest_categorical("bsu", [16, 32, 64])
     hops = trial.suggest_int("hop_user", 1, 2,3)
-
+    optuna_arg = "True"
     # Fixed parameters
     directory = "/Users/harrytriantafyllidis/HARMONIZER/RUN_TESTS/opt_CCLE"
     csv_file = "/Users/harrytriantafyllidis/HARMONIZER/RUN_TESTS/GNN_labels_CCLE.csv"
@@ -32,7 +32,8 @@ def objective(trial):
             hidden_dim=hidden_dim,
             dropout_prob=dropout_prob,
             heads_user=heads,
-            hops_user = hops
+            hops_user = hops,
+            optuna = optuna_arg
         )
         if misclassification_percentage is None:
             raise ValueError("Returned misclassification is None")
@@ -54,7 +55,7 @@ def plot_static_performance(study):
     plt.ylabel("Misclassification %")
     plt.legend()
     plt.grid(True)
-    plt.savefig("optuna_trials_performance.png", dpi=300, bbox_inches='tight')
+    plt.savefig("optuna_trials_performance.png", dpi=600, bbox_inches='tight')
     plt.show()
 
 
@@ -72,6 +73,13 @@ if __name__ == "__main__":
 
     print("Best trial:")
     print(study.best_trial.params)
+    
+  
+    # Save best parameters to JSON
+    with open("best_optuna_params.json", "w") as f:
+        json.dump(study.best_params, f, indent=4)
+    
+    print("Best parameters saved to best_optuna_params.json")
 
     # Static performance plot
     plot_static_performance(study)

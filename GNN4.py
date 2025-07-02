@@ -181,7 +181,7 @@ def run_baseline_classifier(graphs, labels, tts, reverse_label_mapping=None, out
     
     print(f"ROC AUC curve saved")
     
-def main(directory, csv_file, num_epochs, learning_rate, tts, min_obs, bsu, hidden_dim, dropout_prob, heads_user, hops_user):
+def main(directory, csv_file, num_epochs, learning_rate, tts, min_obs, bsu, hidden_dim, dropout_prob, heads_user, hops_user, optuna):
     import multiprocessing
     #torch.autograd.set_detect_anomaly(True)
     os.makedirs("RESULTS", exist_ok=True)
@@ -225,7 +225,8 @@ def main(directory, csv_file, num_epochs, learning_rate, tts, min_obs, bsu, hidd
     
     plt.tight_layout()
     plt.savefig("RESULTS/class_balance_pies.png", dpi=600, bbox_inches='tight')
-    plt.show()
+    if optuna == "False":
+        plt.show()
     
     is_multi = label_df['labels'].value_counts() > min_obs
     label_df = label_df[label_df['labels'].isin(is_multi[is_multi].index)]
@@ -382,9 +383,21 @@ def main(directory, csv_file, num_epochs, learning_rate, tts, min_obs, bsu, hidd
     print(f"Total Number of graphs: {len(graphs):.4f}")
     time.sleep(1)
     
-    train_graphs, test_graphs, train_labels, test_labels = train_test_split(
-        graphs, labels, test_size=1 - tts, random_state=42, stratify=labels
-    )
+    if optuna:
+      # 3-way split: train, val, test
+      print("3-way split: train, val, test:")
+      time.sleep(5)
+      train_graphs_full, test_graphs, train_labels_full, test_labels = train_test_split(
+        graphs, labels, test_size=1-tts, stratify=labels, random_state=42
+      )
+      train_graphs, val_graphs, train_labels, val_labels = train_test_split(
+        train_graphs_full, train_labels_full, test_size=1-tts, stratify=train_labels_full, random_state=42
+      )
+    else:
+    # Standard 2-way split
+      train_graphs, test_graphs, train_labels, test_labels = train_test_split(
+        graphs, labels, test_size=1 - tts, stratify=labels, random_state=42
+      )
     print(f"Training set size: {len(train_graphs)}")
     print(f"Test set size: {len(test_graphs)}")
 
@@ -450,9 +463,6 @@ def main(directory, csv_file, num_epochs, learning_rate, tts, min_obs, bsu, hidd
     
     progress_bar.close()
         
-    # Validation
-    model.eval()
-    
     # Visualize learned edge type embeddings
     
     encoder_weights = model.edge_encoder.weight.detach().cpu().numpy()
@@ -476,8 +486,14 @@ def main(directory, csv_file, num_epochs, learning_rate, tts, min_obs, bsu, hidd
     test_graph_files = [data.file_name for data in test_loader.dataset]
     print(len(test_graph_files))
     time.sleep(1)
+    
+    eval_graphs = val_graphs if optuna else test_graphs
+    eval_graph_files = [data.file_name for data in eval_graphs]
+    eval_loader = DataLoader(eval_graphs, batch_size=1, shuffle=False)
+    
+    model.eval()
     with torch.no_grad():
-        for data, graph_file in zip(test_loader, test_graph_files):
+        for data, graph_file in zip(eval_loader, eval_graph_files):
             out = model(data.x, data.edge_index, data.edge_attr, data.batch, dropout_prob,goi_mask=data.goi_mask)
             embeddings.append(out.cpu().numpy())
             y_true.extend(data.y.tolist())
@@ -767,13 +783,15 @@ def main(directory, csv_file, num_epochs, learning_rate, tts, min_obs, bsu, hidd
                 
                 # Add title with graph file name
                 ax_graph.set_title(f"Graph: {selected_file}", fontsize = 12)
-                plt.show()
+                if optuna == "False":
+                    plt.show()
 
 
         # Connect the click event to the callback
         fig.canvas.mpl_connect("button_press_event", on_click)
         plt.savefig("RESULTS/PCA_interactive.png",dpi=600,bbox_inches='tight')
-        plt.show()
+        if optuna == "False":
+           plt.show()
 
 
     # Update the call
@@ -801,6 +819,7 @@ if __name__ == "__main__":
     parser.add_argument("dropout_prob", type=float, help="Dropout Probability")
     parser.add_argument("heads_user", type=int, help="Number of Attention Heads")
     parser.add_argument("hops_user", type=int, help="Hop order in Spotlight mini-GNN")
+    parser.add_argument("optuna", type=lambda x: x.lower() == "true", help="Enable Optuna 3-way split logic (True/False)")
     args = parser.parse_args()
 
     
