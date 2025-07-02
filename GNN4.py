@@ -823,5 +823,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     
-    main(args.directory, args.csv_file, args.num_epochs, args.learning_rate, args.tts, args.min_obs, args.bsu, args.hidden_dim, args.dropout_prob, args.heads_user, args.hops_user)
+    main(args.directory, args.csv_file, args.num_epochs, args.learning_rate, args.tts, args.min_obs, args.bsu, args.hidden_dim, args.dropout_prob, args.heads_user, args.hops_user, args.optuna)
 
