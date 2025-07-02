@@ -355,7 +355,7 @@ def main(directory, csv_file, num_epochs, learning_rate, tts, min_obs, bsu, hidd
                             edge_attr=torch.tensor(edge_attr_list, dtype=torch.float),
                             file_name=file
                         )
-                        #genes_of_interest = ["TP53"]
+                        #genes_of_interest = ["fdfdfdffd"]
                         genes_of_interest = ["TP53", "MYC"]
                         goi_mask = torch.tensor(
                             [1 if name in genes_of_interest else 0 for name in graph.vs["name"]],
