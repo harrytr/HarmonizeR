@@ -228,6 +228,8 @@ def main(directory, csv_file, num_epochs, learning_rate, tts, min_obs, bsu, hidd
     if not optuna:
         plt.show()
     
+    
+    label_df = pd.read_csv(csv_file)
     is_multi = label_df['labels'].value_counts() > min_obs
     label_df = label_df[label_df['labels'].isin(is_multi[is_multi].index)]
 
@@ -487,12 +489,19 @@ def main(directory, csv_file, num_epochs, learning_rate, tts, min_obs, bsu, hidd
     print(len(test_graph_files))
     time.sleep(1)
     
-    eval_graphs = val_graphs if optuna else test_graphs
-    eval_graph_files = [data.file_name for data in eval_graphs]
-    eval_loader = DataLoader(eval_graphs, batch_size=1, shuffle=False)
-    
     model.eval()
     with torch.no_grad():
+        if optuna:
+            print("Falling back to validation graphs for evaluation:")
+            time.sleep(10)
+            eval_graphs = val_graphs
+            eval_graph_files = [data.file_name for data in eval_graphs]
+            eval_loader = DataLoader(eval_graphs, batch_size=1, shuffle=False)
+        else:
+            eval_graphs = test_graphs
+            eval_graph_files = test_graph_files
+            eval_loader = test_loader
+            
         for data, graph_file in zip(eval_loader, eval_graph_files):
             out = model(data.x, data.edge_index, data.edge_attr, data.batch, dropout_prob,goi_mask=data.goi_mask)
             embeddings.append(out.cpu().numpy())
@@ -501,7 +510,7 @@ def main(directory, csv_file, num_epochs, learning_rate, tts, min_obs, bsu, hidd
             y_pred_prob.append(F.softmax(out, dim=1).cpu())  # Collect probabilities
   
     
-    aligned_graphs = [graphs_objects[graph_files.index(f)] for f in test_graph_files]
+    aligned_graphs = [graphs_objects[graph_files.index(f)] for f in eval_graph_files]
 
     # Concatenate probabilities for AUROC
     y_pred_prob = torch.cat(y_pred_prob, dim=0).numpy()
@@ -799,7 +808,7 @@ def main(directory, csv_file, num_epochs, learning_rate, tts, min_obs, bsu, hidd
       embeddings=np.vstack(embeddings),
       true_labels=y_true_strings,
       predicted_labels=y_pred_strings,
-      graph_files=test_graph_files,
+      graph_files=eval_graph_files,
       graphs=aligned_graphs
     )
     return misclassification_percentage
