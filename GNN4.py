@@ -225,7 +225,7 @@ def main(directory, csv_file, num_epochs, learning_rate, tts, min_obs, bsu, hidd
     
     plt.tight_layout()
     plt.savefig("RESULTS/class_balance_pies.png", dpi=600, bbox_inches='tight')
-    if optuna == "False":
+    if not optuna:
         plt.show()
     
     is_multi = label_df['labels'].value_counts() > min_obs
@@ -783,14 +783,14 @@ def main(directory, csv_file, num_epochs, learning_rate, tts, min_obs, bsu, hidd
                 
                 # Add title with graph file name
                 ax_graph.set_title(f"Graph: {selected_file}", fontsize = 12)
-                if optuna == "False":
+                if not optuna:
                     plt.show()
 
 
         # Connect the click event to the callback
         fig.canvas.mpl_connect("button_press_event", on_click)
         plt.savefig("RESULTS/PCA_interactive.png",dpi=600,bbox_inches='tight')
-        if optuna == "False":
+        if not optuna:
            plt.show()
 
 
@@ -818,7 +818,7 @@ if __name__ == "__main__":
     parser.add_argument("hidden_dim", type=int, help="Hidden dimension")
     parser.add_argument("dropout_prob", type=float, help="Dropout Probability")
     parser.add_argument("heads_user", type=int, help="Number of Attention Heads")
-    parser.add_argument("hops_user", type=int, help="Hop order in Spotlight mini-GNN")
+    parser.add_argument("hops_user", type=int,  help="Hop order in Spotlight mini-GNN")
     parser.add_argument("optuna", type=lambda x: x.lower() == "true", help="Enable Optuna 3-way split logic (True/False)")
     args = parser.parse_args()
 

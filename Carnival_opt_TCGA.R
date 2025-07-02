@@ -676,14 +676,17 @@ Carnival_opt <-function(iterator_index,
   else{print("Networks have been compared already - file 'graph_heatmap_ID.csv' already exists! Delete if you wish to rerun the comparisons")}
   
   #### RUN PYTHON SCRIPT TO CONVERT .dot to .graphml so that igraph can read it
+  heads_user = 2
+  hops_user = 1
+  optuna = "False"
   setwd(source_code_dir)
   if (GNN_flag == "TRUE") {
     print("Running now Python script to classify optimized networks at graph level using Graph Neural Networks...")
     if (.Platform$OS.type == "unix") {
-      command <- paste0("python3 GNN3.py ",'"',carnival_path,'"'," ",'"',paste0(carnival_path, "//","GNN_labels.csv"),'"'," ", epochs," ",lr," ",tts," ",update_it, " ", bsu, " ", hidden_dim, " ", dropout )
+      command <- paste0("python3 GNN4.py ",'"',carnival_path,'"'," ",'"',paste0(carnival_path, "//","GNN_labels.csv"),'"'," ", epochs," ",lr," ",tts," ",update_it, " ", bsu, " ", hidden_dim, " ", dropout, " ", heads_user, " ", hops_user, " ", optuna)
     }
     else if  (.Platform$OS.type == "windows") {
-      command <- paste0("python GNN3.py ",'"',carnival_path,'"'," ",'"',paste0(carnival_path, "//","GNN_labels.csv"),'"'," ",epochs," ",lr," ",tts," ",update_it, " ", bsu, " ", hidden_dim, " ", dropout)
+      command <- paste0("python GNN4.py ",'"',carnival_path,'"'," ",'"',paste0(carnival_path, "//","GNN_labels.csv"),'"'," ",epochs," ",lr," ",tts," ",update_it, " ", bsu, " ", hidden_dim, " ", dropout, " ", heads_user, " ", hops_user, " ", optuna)
     }
     
     
