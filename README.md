@@ -66,7 +66,7 @@ Credits also go to [Enio Gjerga](https://scholar.google.com/citations?user=IzQPp
 The main differences are:
 
 - improved data compatibility (now working with latest versions of CCLE (2024+)
-- Removed TCGA support directly (the user can still though rename the Carnival_opt to Carnival_Opt_bkp and the Carnival_Opt_TCGA to Carnival_Opt to run the platform for TCGA)
+- Removed TCGA support directly (the user can still though rename the "Carnival_opt.R" to e.g. "Carnival_opt_bkp.R" and the "Carnival_opt_TCGA.R" to now being the "Carnival_opt.R" to run the platform for TCGA)
 - Improved community detection on optimized networks (directed supported)
 - Improved gene set signature extraction from the networks as now included state of gene (up/down regulated)
 - Improved reading of .DOT figure optimized CARNIVAL network, now being read using Python (PyDoT)
