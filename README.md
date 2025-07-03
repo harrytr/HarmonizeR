@@ -25,7 +25,7 @@ Put the renamed files into a folder inside /inputs/, with the name of the releaa
 
 ### Installing
 
-Clone this Repo locally. Load the Shiny App by running the app.R from Rstudio. You will need R.4.5.0 and Python 3.10.5 (tested and working ; anything more recent might not work). 
+Clone this Repo locally. Load the Shiny App by running the app.R from Rstudio. You will need R.4.5.0 and Python 3.11.7 (tested and working ; anything more recent might not work). 
 
 ## Running HARMONIZER
 
