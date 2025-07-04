@@ -45,7 +45,7 @@ class GNN(torch.nn.Module):
         # Neighborhood-aware GOI encoder (small GAT)
         self.goi_gnn = GATv2Conv(
             input_dim, input_dim, heads=heads, concat=True,
-            dropout=dropout_prob, edge_dim=edge_dim
+            dropout=0.5, edge_dim=edge_dim
         )
         self.goi_proj = nn.Linear(input_dim * heads, input_dim)
 
@@ -95,7 +95,7 @@ class GNN(torch.nn.Module):
         x = F.elu(self.bn2(self.gat2(x, edge_index, edge_attr) + x))
         x = F.elu(self.bn3(self.gat3(x, edge_index, edge_attr) + x))
         x = global_mean_pool(x, batch)
-        x = F.dropout(x, p=dropout_prob, training=self.training)
+        x = F.dropout(x, p=0.5, training=self.training)
         return self.lin(x)
 
 
