@@ -45,7 +45,7 @@ class GNN(torch.nn.Module):
         # Neighborhood-aware GOI encoder (small GAT)
         self.goi_gnn = GATv2Conv(
             input_dim, input_dim, heads=heads, concat=True,
-            dropout=0.5, edge_dim=edge_dim
+            dropout=dropout_prob, edge_dim=edge_dim
         )
         self.goi_proj = nn.Linear(input_dim * heads, input_dim)
 
@@ -95,7 +95,7 @@ class GNN(torch.nn.Module):
         x = F.elu(self.bn2(self.gat2(x, edge_index, edge_attr) + x))
         x = F.elu(self.bn3(self.gat3(x, edge_index, edge_attr) + x))
         x = global_mean_pool(x, batch)
-        x = F.dropout(x, p=0.5, training=self.training)
+        x = F.dropout(x, p=dropout_prob, training=self.training)
         return self.lin(x)
 
 
@@ -283,7 +283,6 @@ def main(directory, csv_file, num_epochs, learning_rate, tts, min_obs, bsu, hidd
                             edge_attr=torch.tensor(edge_attr_list, dtype=torch.float),
                             file_name=file
                         )
-                        #genes_of_interest = ["MYC"]
                         genes_of_interest = ["TP53", "MYC"]
                         goi_mask = torch.tensor(
                             [1 if name in genes_of_interest else 0 for name in graph.vs["name"]],
@@ -335,7 +334,7 @@ def main(directory, csv_file, num_epochs, learning_rate, tts, min_obs, bsu, hidd
 
     train_loader = DataLoader(train_graphs, batch_size=bsu, shuffle=True)
     test_loader = DataLoader(test_graphs, batch_size=1, shuffle=False)
-
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = GNN(
         input_dim=feature_matrix.shape[1],
         hidden_dim=hidden_dim,
@@ -343,13 +342,13 @@ def main(directory, csv_file, num_epochs, learning_rate, tts, min_obs, bsu, hidd
         dropout_prob=dropout_prob,
         heads = heads_user,
         hop_order=hops_user # will encode GOI and all nodes within hop_order hops
-    )
+    ).to(device)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
     
     from sklearn.utils.class_weight import compute_class_weight
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+   
     # Convert to tensor for torch.unique
     classes = torch.unique(torch.tensor(train_labels)).cpu().numpy()
     
@@ -371,6 +370,7 @@ def main(directory, csv_file, num_epochs, learning_rate, tts, min_obs, bsu, hidd
         model.train()
         total_loss = 0
         for data in train_loader:
+            data = data.to(device)
             optimizer.zero_grad()
             out = model(data.x, data.edge_index, data.edge_attr, data.batch, dropout_prob,goi_mask=data.goi_mask)
             loss = loss_fn(out, data.y)
