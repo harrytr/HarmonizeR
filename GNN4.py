@@ -98,89 +98,7 @@ class GNN(torch.nn.Module):
         x = F.dropout(x, p=0.5, training=self.training)
         return self.lin(x)
 
-# --- BASELINE CLASSIFIER (GRAPH-LEVEL) ---
-def run_baseline_classifier(graphs, labels, tts, reverse_label_mapping=None, output_path="baseline_roc_auc.png"):
-    features = []
-    
-    for graph in graphs:
-        degrees = graph.degree()
-        avg_degree = np.mean(degrees)
-        avg_betweenness = np.mean(graph.betweenness())
-        node_colors = graph.vs["fillcolor"]
-        node_binary = [1 if c == "lavender" else -1 if c == "mistyrose" else 0 for c in node_colors]
-        edge_d7 = graph.es["arrowhead"]
-        edge_binary = [1 if d7 == '"vee"' else -1 if d7 == '"tee"' else 0 for d7 in edge_d7]
 
-        percent_inhibitory = np.sum(np.array(edge_binary) == -1) / len(edge_binary)
-        percent_activating = np.sum(np.array(edge_binary) == 1) / len(edge_binary)
-
-        features.append([
-            np.mean(node_binary),
-            np.mean(edge_binary),
-            avg_betweenness
-        ])
-
-    X = np.array(features)
-    y = np.array(labels)
-
-    # Train-test split
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=1-tts, stratify=y, random_state=42)
-
-    # Class Weights
-    classes = np.unique(y_train)
-    class_weights = compute_class_weight(class_weight='balanced', classes=classes, y=y_train)
-    class_weight_dict = {cls: weight for cls, weight in zip(classes, class_weights)}
-    print("Class Weights:", class_weight_dict)
-
-    # Classifier with sample weights
-    clf = XGBClassifier(use_label_encoder=False, eval_metric='mlogloss')
-    clf.fit(X_train, y_train, sample_weight=np.array([class_weight_dict[cls] for cls in y_train]))
-
-    y_pred = clf.predict(X_test)
-    y_pred_proba = clf.predict_proba(X_test)
-
-    misclassified_pct = 100 * (y_pred != y_test).sum() / len(y_test)
-
-    print("\n--- BASELINE CLASSIFIER REPORT ---")
-    if reverse_label_mapping:
-        y_test_str = [reverse_label_mapping[y] for y in y_test]
-        y_pred_str = [reverse_label_mapping[y] for y in y_pred]
-        print(classification_report(y_test_str, y_pred_str))
-        print("Confusion Matrix:")
-        print(confusion_matrix(y_test_str, y_pred_str))
-    else:
-        print(classification_report(y_test, y_pred))
-        print("Confusion Matrix:")
-        print(confusion_matrix(y_test, y_pred))
-
-    print(f"Misclassification rate: {misclassified_pct:.2f}%")
-
-    # --- ROC AUC Curve ---
-    plt.figure()
-
-    # Multi-class needs binarizing
-    y_test_binarized = label_binarize(y_test, classes=classes)
-    n_classes = y_test_binarized.shape[1]
-
-    for i in range(n_classes):
-        fpr, tpr, _ = roc_curve(y_test_binarized[:, i], y_pred_proba[:, i])
-        roc_auc = auc(fpr, tpr)
-        plt.plot(fpr, tpr, label=f'Class {reverse_label_mapping[classes[i]] if reverse_label_mapping else classes[i]} (AUC = {roc_auc:.2f})')
-
-    plt.plot([0, 1], [0, 1], 'k--')
-    plt.xlim([0.0, 1.0])
-    plt.ylim([0.0, 1.05])
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.title('ROC AUC - Baseline Classifier')
-    plt.legend(loc="lower right")
-
-    plt.tight_layout()
-    plt.savefig('RESULTS/Baseline_ROC.png', dpi=600, bbox_inches='tight')
-    plt.close()
-    
-    print(f"ROC AUC curve saved")
-    
 def main(directory, csv_file, num_epochs, learning_rate, tts, min_obs, bsu, hidden_dim, dropout_prob, heads_user, hops_user, optuna):
     import multiprocessing
     #torch.autograd.set_detect_anomaly(True)
@@ -365,6 +283,7 @@ def main(directory, csv_file, num_epochs, learning_rate, tts, min_obs, bsu, hidd
                             edge_attr=torch.tensor(edge_attr_list, dtype=torch.float),
                             file_name=file
                         )
+                        #genes_of_interest = ["MYC"]
                         genes_of_interest = ["TP53", "MYC"]
                         goi_mask = torch.tensor(
                             [1 if name in genes_of_interest else 0 for name in graph.vs["name"]],
@@ -388,9 +307,6 @@ def main(directory, csv_file, num_epochs, learning_rate, tts, min_obs, bsu, hidd
                         print("No color attribute found in the graph.")
                         time.sleep(2)
 
-
-    run_baseline_classifier(graphs_objects, labels, tts, reverse_label_mapping)
-    
     print(f"Total Number of graphs: {len(graphs):.4f}")
     time.sleep(1)
     
