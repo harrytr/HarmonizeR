@@ -428,6 +428,7 @@ def main(directory, csv_file, num_epochs, learning_rate, tts, min_obs, bsu, hidd
             eval_loader = test_loader
             
         for data, graph_file in zip(eval_loader, eval_graph_files):
+            data = data.to(device)
             out = model(data.x, data.edge_index, data.edge_attr, data.batch, dropout_prob,goi_mask=data.goi_mask)
             embeddings.append(out.cpu().numpy())
             y_true.extend(data.y.tolist())
