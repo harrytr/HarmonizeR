@@ -5,13 +5,14 @@ import json
 
 def objective(trial):
     # Suggest hyperparameters
-    hidden_dim = trial.suggest_categorical("hidden_dim", [32,64])
+    
+    hidden_dim = trial.suggest_categorical("hidden_dim", [32, 64])
     dropout_prob = trial.suggest_float("dropout_prob", 0.2, 0.5)
-    learning_rate = trial.suggest_loguniform("learning_rate", 1e-5, 1e-3)
-    heads = trial.suggest_int("heads_user", 2, 4, 6)
-    num_epochs = trial.suggest_categorical("num_epochs", [50,100])
+    learning_rate = trial.suggest_float("learning_rate", 1e-5, 1e-3, log=True)  
+    heads = trial.suggest_categorical("heads_user", [2, 4, 6])                 
+    num_epochs = trial.suggest_categorical("num_epochs", [50, 100])
     bsu = trial.suggest_categorical("bsu", [16, 32, 64])
-    hops = trial.suggest_int("hop_user", 1, 2,3)
+    hops = trial.suggest_categorical("hops_user", [1, 2, 3])                   
     optuna_arg = "True"
     # Fixed parameters
     directory = "/Users/harrytriantafyllidis/HARMONIZER/RUN_TESTS/opt_CCLE"
