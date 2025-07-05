@@ -15,8 +15,8 @@ def objective(trial):
     hops = trial.suggest_categorical("hops_user", [1, 2, 3])                   
     optuna_arg = "True"
     # Fixed parameters
-    directory = "/Users/harrytriantafyllidis/HARMONIZER/RUN_TESTS/opt_CCLE"
-    csv_file = "/Users/harrytriantafyllidis/HARMONIZER/RUN_TESTS/GNN_labels_CCLE.csv"
+    directory = "/Users/harrytriantafyllidis/HARMONIZER/RUN_TESTS/opt_TCGA"
+    csv_file = "/Users/harrytriantafyllidis/HARMONIZER/RUN_TESTS/GNN_labels_TCGA.csv"
     tts = 0.7  # Train-test split ratio
     min_obs = 1
 
