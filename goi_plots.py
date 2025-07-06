@@ -1,31 +1,33 @@
 import pandas as pd
 import numpy as np
 from plotnine import *
-from scipy.stats import ttest_ind, mannwhitneyu
+from scipy.stats import f_oneway, kruskal
 
 # Load and rename
-df = pd.read_csv("multi_scenario_results_TCGA.csv")
+df = pd.read_csv("multi_scenario_results_CCLE.csv")
 df.rename(columns={
     "GOI": "Gene",
     "hop_order": "Hops",
     "misclassification_percent": "Misclassification"
 }, inplace=True)
 
-# Extract hop groups
-group1 = df[df["Hops"] == 1]["Misclassification"]
-group2 = df[df["Hops"] == 2]["Misclassification"]
+# Function to compute ANOVA and Kruskal–Wallis per hop
+def get_stats_for_hop(hop_value):
+    subset = df[df["Hops"] == hop_value]
+    grouped = [group["Misclassification"].values for _, group in subset.groupby("Gene")]
+    
+    # Only run tests if there are ≥2 groups
+    if len(grouped) < 2:
+        return f"Hop {hop_value}: Insufficient groups"
+    
+    anova_p = f_oneway(*grouped).pvalue
+    kruskal_p = kruskal(*grouped).pvalue
+    
+    return f"Hop {hop_value}: ANOVA p = {anova_p:.5f}, Kruskal–Wallis p = {kruskal_p:.5f}"
 
-# Welch's t-test
-t_stat, t_p = ttest_ind(group1, group2, equal_var=False)
-
-# Mann–Whitney U test
-u_stat, u_p = mannwhitneyu(group1, group2, alternative='two-sided')
-
-# Create precise label
-stat_label = (
-    f"Welch's t-test p = {t_p:.5f}\n"
-    f"Mann–Whitney U p = {u_p:.5f}"
-)
+# Build label text across all hops
+hop_values = sorted(df["Hops"].unique())
+stat_labels = "\n".join(get_stats_for_hop(h) for h in hop_values)
 
 # Compute max y for label placement
 y_max = df["Misclassification"].max()
@@ -36,9 +38,9 @@ plot = (
     + geom_violin(width=0.9, alpha=0.6, color="gray", draw_quantiles=[0.25, 0.5, 0.75])
     + geom_boxplot(width=0.15, outlier_shape='', color='black', fill='white')
     + geom_text(
-        aes(x=1.5, y=y_max + 2),
-        label=stat_label,
-        size=9,
+        aes(x=1.5, y=y_max - 2),
+        label=stat_labels,
+        size=12,
         ha='center',
         va='bottom',
         inherit_aes=False
@@ -53,7 +55,7 @@ plot = (
         legend_text=element_text(size=11)
     )
     + labs(
-        title="Misclassification Across GOI genes and Hop Lengths in TCGA",
+        title="Misclassification Across GOI genes and Hop Lengths in CCLE",
         x="Gene(s) of Interest",
         y="Misclassification %",
         fill="Hop Length"
@@ -61,5 +63,4 @@ plot = (
 )
 
 # Save to file
-plot.save("misclassification_global_test.png", dpi=600)
-print("✅ Saved to Desktop with p-values to 5 decimal places")
+plot.save("S5_CCLE.png", dpi=600)
