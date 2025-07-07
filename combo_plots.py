@@ -7,8 +7,8 @@ import seaborn as sns
 
 # === HANDLE INPUT ARGUMENT ===
 if len(sys.argv) != 2:
-    print("Usage: python generate_combo_plots.py <SOURCE>")
-    print("Example: python generate_combo_plots.py TCGA")
+    print("Usage: python combo_plots.py <SOURCE>")
+    print("Example: python combo_plots.py TCGA")
     sys.exit(1)
 
 SOURCE = sys.argv[1]
@@ -88,7 +88,7 @@ features_to_plot = [
     "avg_path_length" 
 ]
 
-sns.set(style="whitegrid", palette="Set2", font_scale=1.1)
+sns.set(style="whitegrid", palette="Set2", font_scale=1.5)
 n_feats = len(features_to_plot)
 ncols = 2
 nrows = (n_feats + 1) // ncols
