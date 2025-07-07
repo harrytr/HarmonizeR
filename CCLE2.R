@@ -755,7 +755,7 @@ CCLE2 <-function(disease_name,
             temp_genes <- c(temp_genes, toString(temp_gene0)) # all the genes found mutated but also exist in expression matrix
             mutant_cell_lines0 <-   pairs_GC  %>% dplyr::filter(Hugo_Symbol %in% temp_gene0)
 
-            mutant_cell_lines1 <- mutant_cell_lines0 %>% dplyr::select(matches("Tumor_Sample_Barcode", "Variant_Classification"))
+            mutant_cell_lines1 <- mutant_cell_lines0 %>% dplyr::select(matches("Tumor_Sample_Barcode|Variant_Classification"))
             mutant_cell_lines <- as.list(mutant_cell_lines1$Tumor_Sample_Barcode)
 
             number_of_mutations <- c(number_of_mutations,length(mutant_cell_lines0$Tumor_Sample_Barcode))
@@ -1163,7 +1163,7 @@ CCLE2 <-function(disease_name,
           font("xylab",size=20)+
           font("xy",size=20)+
           font("xy.text", size = 20) +
-          font("legend.text",size = 20) +
+          font("legend.text",size = 25) +
           theme(axis.text.x=element_text(size=25, angle=90,hjust=0.95,vjust=0.02))+
           ggtitle(main7) +
           #stat_compare_means(method = "anova", label.y = 20, size = 5)  +
@@ -1239,8 +1239,8 @@ CCLE2 <-function(disease_name,
           font("legend.text",size = 20) +
           theme(axis.text.x=element_text(size=25, angle=90,hjust=0.95,vjust=0.02))+
           ggtitle(main7) +
-          stat_compare_means(method = "anova", label.y = 20, size = 5)  +
-          stat_compare_means(label.y = 21, size = 5)# +
+          stat_compare_means(method = "anova", label.y = 11,label.x = 2, size = 8)  +
+          stat_compare_means(label.y = 10, label.x = 2, size = 8)# +
         #stat_compare_means(label = "p.signif", method = "t.test", ref.group = ".all.", label.y=20, size = 5)
 
         print(sp77)
