@@ -41,6 +41,14 @@ In the UI from the bottom right check the box "Read new CCLE version" and use th
 
 Once the files have been read, a "24Q2.RData" will be created with all the matrices included, so you don't have to re-read the .CSV files each time you run the platform but just load the .Rdata file (much faster) in memory.
 
+Specialised (independent from the R shiny app) Functions: 
+- GNN4.py : runs the GATv2 classifier for a given folder of graphs and their associated .csv of labels
+- GNN4_multi.py  : probes the GNN4.py using a number of different trials with random initialisations for thegeneral GATv2 training across different settings of GOI sets and hop lengths 
+- combo_plots.py : generates network metrics figures, you will need a folder to place the script that contains the .csv of the labels for a dataset plus a folder with the graphs
+- goi_plots.py   : generates GOI probing figure, that checks different combinations of GOI sets of genes and their misclassification across different hop lengths given a .csv of the results generated from GNN4_multi.py
+- optuna_tuning_script.py : runs the OPTUNA tuning using train/validation splits , keeps the test set disjoing based on the user defined % of split ratio
+
+
 ### Prerequisites
 
 CARNIVAL requires the interactive version of IBM Cplex The IBM ILOG Cplex is freely available through Academic Initiative [here](https://www.ibm.com/products/ilog-cplex-optimization-studio?S_PKG=CoG&cm_mmc=Search_Google-_-Data+Science_Data+Science-_-WW_IDA-_-+IBM++CPLEX_Broad_CoG&cm_mmca1=000000RE&cm_mmca2=10000668&cm_mmca7=9041989&cm_mmca8=kwd-412296208719&cm_mmca9=_k_Cj0KCQiAr93gBRDSARIsADvHiOpDUEHgUuzu8fJvf3vmO5rI0axgtaleqdmwk6JRPIDeNcIjgIHMhZIaAiwWEALw_wcB_k_&cm_mmca10=267798126431&cm_mmca11=b&mkwid=_k_Cj0KCQiAr93gBRDSARIsADvHiOpDUEHgUuzu8fJvf3vmO5rI0axgtaleqdmwk6JRPIDeNcIjgIHMhZIaAiwWEALw_wcB_k_|470|135655&cvosrc=ppc.google.%2Bibm%20%2Bcplex&cvo_campaign=000000RE&cvo_crid=267798126431&Matchtype=b&gclid=Cj0KCQiAr93gBRDSARIsADvHiOpDUEHgUuzu8fJvf3vmO5rI0axgtaleqdmwk6JRPIDeNcIjgIHMhZIaAiwWEALw_wcB). The [CBC](https://projects.coin-or.org/Cbc) solver is open source and freely available for any user. 
